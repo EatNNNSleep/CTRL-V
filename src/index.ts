@@ -4,6 +4,13 @@ import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 
+// ==========================================
+// MOCK DATABASE: OUTBREAK ALERTS
+// ==========================================
+// This array temporarily stores diseases detected by Agent 1
+const globalOutbreaks: Array<{ disease: string, location: string, timestamp: string }> = [];
+
+
 // 1. Load the API Key safely from .env
 dotenv.config();
 
@@ -25,13 +32,14 @@ export const diseaseDetectionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const prompt = `
-      You are an expert Malaysian agricultural AI. 
-      Analyze the plant leaf in this image: ${input.imageUrl}.
-      1. Identify the disease (e.g., Brown Spot, Rice Blast).
-      2. Recommend a specific local pesticide or treatment.
-      3. Respond entirely in the following language: ${input.language}.
-    `;
+    const prompt = `You are an expert plant pathologist and sustainable farming advisor.
+    Analyze this issue and return a JSON object with the following strictly formatted keys:
+    1. "disease_name": The name of the detected issue.
+    2. "severity": "Low", "Medium", or "High".
+    3. "treatment": General advice.
+    4. "eco_store_recommendation": An object containing "product_name" (must be an organic/eco-friendly biopesticide or fertilizer), "price_estimate_rm", and "reasoning".
+    
+    Focus heavily on environmental sustainability.`;
 
     const response = await ai.generate({
   model: 'googleai/gemini-2.5-flash',
@@ -142,6 +150,32 @@ export const multilingualChatFlow = ai.defineFlow({
     return response.text;
 });
 
+// ==========================================
+// AGENT 5: COMMUNITY TRANSLATOR
+// ==========================================
+export const translatePostFlow = ai.defineFlow({
+    name: 'translatePostFlow',
+    inputSchema: z.object({
+        postText: z.string(),
+    }),
+    outputSchema: z.string(),
+}, async (input) => {
+    const prompt = `You are an AI assistant for a Malaysian farmers' community app.
+    A farmer just posted this message: "${input.postText}"
+    
+    Translate this message into standard Bahasa Melayu, and provide an English translation in brackets. 
+    Make it sound friendly and helpful. Return ONLY the translated text.`;
+    
+    const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: prompt,
+    });
+    
+    return response.text;
+});
+
+
+
 
 // ==========================================
 //            EXPRESS SERVER
@@ -215,6 +249,45 @@ app.post('/api/chat', async (req, res) => {
 });
 
 
+// Agent 5
+app.post('/api/translate', async (req, res) => {
+    try {
+        const result = await translatePostFlow(req.body);
+        res.json({ success: true, translation: result });
+    } catch (error) {
+        console.error("Translation Error:", error);
+        res.status(500).json({ success: false, error: "Gagal menterjemah (Translation failed)" });
+    }
+});
+
+// Outbreak Alert Route
+// The frontend will call this to check if there is an outbreak in the farmer's area
+app.get('/api/alerts', (req, res) => {
+    const userLocation = req.query.location as string;
+    
+    if (!userLocation) {
+        return res.json({ success: true, alerts: [] });
+    }
+
+    // Check our database for diseases in this specific location
+    const localAlerts = globalOutbreaks.filter(
+        outbreak => outbreak.location.toLowerCase() === userLocation.toLowerCase()
+    );
+
+    res.json({ success: true, alerts: localAlerts });
+});
+
+//  Secret Hackathon Route: Trigger an Outbreak!
+// (Use this to test if the alert system works before Agent 1 is fully connected)
+app.post('/api/trigger-outbreak', (req, res) => {
+    const { disease, location } = req.body;
+    globalOutbreaks.push({
+        disease: disease,
+        location: location,
+        timestamp: new Date().toISOString()
+    });
+    res.json({ success: true, message: `🚨 Outbreak of ${disease} recorded in ${location}!` });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
