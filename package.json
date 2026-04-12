@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "setup": "genkit init"
+    "start": "npx tsx src/index.ts",
+    "dev": "npx tsx watch src/index.ts"
   },
   "keywords": [],
   "author": "",
