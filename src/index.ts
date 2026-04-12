@@ -233,7 +233,7 @@ export const translatePostFlow = ai.defineFlow({
 // ==========================================
 const app = express();
 app.get('/', (req, res) => {
-    res.send('🚀 CTRLV AI Farming Backend is LIVE and running smoothly!');
+    res.send('🚀 CTRL+V AI Farming Backend is LIVE and running smoothly!');
 });
 app.use(cors()); // to connect with frontend
 app.use(express.json());
