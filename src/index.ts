@@ -1,14 +1,9 @@
+//***GOOGLE CLOUD WORKSTATIONS (Dev Environment Concept)***//
 import { genkit, z } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai'; 
 import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-
-// ==========================================
-// MOCK DATABASE: OUTBREAK ALERTS
-// ==========================================
-// This array temporarily stores diseases detected by Agent 1
-const globalOutbreaks: Array<{ disease: string, location: string, timestamp: string }> = [];
 
 
 // 1. Load the API Key safely from .env
@@ -20,7 +15,74 @@ const ai = genkit({
 });
 
 // ==========================================
-// AGENT 1: Multilingual Disease Detection
+// MOCK DATABASE: OUTBREAK ALERTS
+// ==========================================
+// This array temporarily stores diseases detected by Agent 1
+const globalOutbreaks: Array<{ disease: string, location: string, timestamp: string }> = [];
+
+// ==========================================
+// MOCK DATABASE: ECO-STORE / MARKET            //*** (VERTEX AI SEARCH (RAG Knowledge Base Simulation))***//
+// ==========================================
+const mockMarketDatabase = [
+    { 
+        id: 1, 
+        product_name: "Fungicide Pro",
+        category: "Treatments",
+        description: "Broad-spectrum fungal control",
+        price_rm: 45.99,
+        in_stock: true,
+        target_issue: "Leaf Rust and Fungal Infections"
+    },
+    { 
+        id: 2, 
+        product_name: "Organic Pest Shield",
+        category: "Treatments",
+        description: "Natural pest deterrent",
+        price_rm: 32.50,
+        in_stock: true,
+        target_issue: "Pests and Insects"
+    },
+    { 
+        id: 3, 
+        product_name: "NitroMax 20-20-20",
+        category: "Fertilizers",
+        description: "Balanced NPK formula",
+        price_rm: 28.99,
+        in_stock: true,
+        target_issue: "General Nutrient Deficiency"
+    },
+    { 
+        id: 4, 
+        product_name: "Root Boost Plus",
+        category: "Fertilizers",
+        description: "Root development enhancer",
+        price_rm: 19.99,
+        in_stock: false, // Marked out of stock based on the UI!
+        target_issue: "Poor root growth"
+    },
+    { 
+        id: 5, 
+        product_name: "Heirloom Tomato Seeds",
+        category: "Seeds",
+        description: "Non-GMO variety pack",
+        price_rm: 12.99,
+        in_stock: true,
+        target_issue: "New Planting - Tomato"
+    },
+    { 
+        id: 6, 
+        product_name: "Disease-Resistant Corn",
+        category: "Seeds",
+        description: "High-yield hybrid seeds",
+        price_rm: 24.99,
+        in_stock: true,
+        target_issue: "New Planting - Corn"
+    }
+];
+const availableProducts = JSON.stringify(mockMarketDatabase);
+
+// ==========================================
+// AGENT 1: Multilingual Disease Detection           //***GEMINI VISION & VERTEX AI AGENT BUILDER (Agents & Actions)***//
 // ==========================================
 export const diseaseDetectionFlow = ai.defineFlow(
   {
@@ -32,14 +94,20 @@ export const diseaseDetectionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const prompt = `You are an expert plant pathologist and sustainable farming advisor.
-    Analyze this issue and return a JSON object with the following strictly formatted keys:
-    1. "disease_name": The name of the detected issue.
-    2. "severity": "Low", "Medium", or "High".
-    3. "treatment": General advice.
-    4. "eco_store_recommendation": An object containing "product_name" (must be an organic/eco-friendly biopesticide or fertilizer), "price_estimate_rm", and "reasoning".
+    const prompt = `You are an expert plant pathologist. 
+    Analyze this image and identify the disease.
     
-    Focus heavily on environmental sustainability.`;
+    CRITICAL INSTRUCTION: If you detect an issue, you MUST recommend a product from our specific store inventory below. 
+    Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
+    
+    Store Inventory:
+    ${availableProducts}
+    
+    Return a JSON object with:
+    1. "disease_name": The detected issue.
+    2. "severity": "Low", "Medium", or "High".
+    3. "recommended_product": The exact 'product_name' from the store inventory that best treats this issue.
+    4. "price": The exact price of the recommended product.`;
 
     const response = await ai.generate({
   model: 'googleai/gemini-2.5-flash',
@@ -84,40 +152,24 @@ export const farmScheduleFlow = ai.defineFlow(
 );
 
 // ==========================================
-// AGENT 3: MARKET INTELLIGENCE (RAG IMPLEMENTATION)
+// AGENT 3: MARKET INTELLIGENCE (RAG IMPLEMENTATION)          //***GEMINI + VERTEX AI SEARCH (RAG Application) ***//
 // ==========================================
 // In a real production app, this data would come from a PDF on Google Cloud.
-const mockMarketDatabase = [
-    { crop: "Durian", trend: "High demand in China. Current export price is RM 45/kg. Expected to rise next month." },
-    { crop: "Rice", trend: "Local supply is stable. Government ceiling price applies. Subsidies available for fertilizer." },
-    { crop: "Chili", trend: "Rainy season has reduced supply. Prices spiking to RM 15/kg. High risk of disease." }
-];
-
 export const marketIntelligenceFlow = ai.defineFlow({
     name: 'marketIntelligenceFlow',
-    inputSchema: z.object({
-        cropType: z.string(),
+   inputSchema: z.object({
+        query: z.string(),
     }),
     outputSchema: z.string(),
 }, async (input) => {
     
-    // STEP 1: RETRIEVAL ('R' in RAG)
-    // Search our "database" for the specific crop the farmer asked about.
-    const retrievedData = mockMarketDatabase.find(c => c.crop.toLowerCase() === input.cropType.toLowerCase());
-    const marketContext = retrievedData ? retrievedData.trend : "No specific market data found for this crop.";
-
-    // STEP 2 & 3: AUGMENT & GENERATE ('A' and 'G' in RAG)
-    // We inject the retrieved data directly into the prompt.
-    const prompt = `You are an expert agricultural economist in Malaysia. 
+    const prompt = `You are an expert Agricultural Market Analyst in Malaysia.
+    The farmer is asking: "${input.query}"
     
-    The farmer is asking about: ${input.cropType}.
+    Here is the exact real-time inventory and pricing of our platform's eco-store:
+    ${availableProducts}
     
-    // --- REAL-WORLD CONTEXT FROM DATABASE --- //
-    ${marketContext}
-    // ---------------------------------------- //
-    
-    Based STRICTLY on the real-world context above, advise the farmer on whether to sell now or wait. 
-    Return ONLY a JSON object with these exact keys: "crop", "recommendation" (Sell Now or Wait), "reasoning", and "risk_level" (Low/Medium/High).`;
+    Answer the farmer's question based strictly on our store inventory. If they ask for prices or availability, give them accurate information from the list. If an item has "in_stock": false, warn them it is currently unavailable.`;
     
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
@@ -128,7 +180,7 @@ export const marketIntelligenceFlow = ai.defineFlow({
 });
 
 // ==========================================
-// AGENT 4: MULTILINGUAL FARMING ASSISTANT
+// AGENT 4: MULTILINGUAL FARMING ASSISTANT                     //***GEMINI TEXT (NLP & Translation)***//
 // ==========================================
 export const multilingualChatFlow = ai.defineFlow({
     name: 'multilingualChatFlow',
@@ -176,9 +228,8 @@ export const translatePostFlow = ai.defineFlow({
 
 
 
-
 // ==========================================
-//            EXPRESS SERVER
+//            EXPRESS SERVER                            //***GOOGLE CLOUD RUN (Serverless Deployment)***//
 // ==========================================
 const app = express();
 app.use(cors()); // to connect with frontend
