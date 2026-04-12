@@ -232,6 +232,9 @@ export const translatePostFlow = ai.defineFlow({
 //            EXPRESS SERVER                            //***GOOGLE CLOUD RUN (Serverless Deployment)***//
 // ==========================================
 const app = express();
+app.get('/', (req, res) => {
+    res.send('🚀 CTRLV AI Farming Backend is LIVE and running smoothly!');
+});
 app.use(cors()); // to connect with frontend
 app.use(express.json());
 
