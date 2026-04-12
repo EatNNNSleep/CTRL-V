@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
-    "genkit": "^1.31.0",
+    "genkit": "^1.32.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
