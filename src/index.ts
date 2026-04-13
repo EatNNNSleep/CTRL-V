@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 
-
 // 1. Load the API Key safely from .env
 dotenv.config();
 
@@ -57,7 +56,7 @@ const mockMarketDatabase = [
         category: "Fertilizers",
         description: "Root development enhancer",
         price_rm: 19.99,
-        in_stock: false, // Marked out of stock based on the UI!
+        in_stock: false,
         target_issue: "Poor root growth"
     },
     { 
@@ -232,6 +231,8 @@ export const translatePostFlow = ai.defineFlow({
 //            EXPRESS SERVER                            //***GOOGLE CLOUD RUN (Serverless Deployment)***//
 // ==========================================
 const app = express();
+// Allow any frontend to connect to this API
+app.use(cors({ origin: '*' }));
 app.get('/', (req, res) => {
     res.send('🚀 CTRL+V AI Farming Backend is LIVE and running smoothly!');
 });
@@ -331,7 +332,6 @@ app.get('/api/alerts', (req, res) => {
     res.json({ success: true, alerts: localAlerts });
 });
 
-//  Secret Hackathon Route: Trigger an Outbreak!
 // (Use this to test if the alert system works before Agent 1 is fully connected)
 app.post('/api/trigger-outbreak', (req, res) => {
     const { disease, location } = req.body;
@@ -341,6 +341,36 @@ app.post('/api/trigger-outbreak', (req, res) => {
         timestamp: new Date().toISOString()
     });
     res.json({ success: true, message: `🚨 Outbreak of ${disease} recorded in ${location}!` });
+});
+
+// ==========================================
+//  User profile recent order(s)
+// ==========================================
+
+app.get('/api/orders/recent', (req, res) => {
+    // Mock data
+    const mockOrders = [
+        { 
+            orderId: "ORD-8832", 
+            date: "2026-04-10", 
+            items: ["Organic Copper Fungicide (1L)"], 
+            status: "Delivered", 
+            total: "RM 45.00" 
+        },
+        { 
+            orderId: "ORD-8845", 
+            date: "2026-04-12", 
+            items: ["Smart Soil Sensor V2", "Premium NPK Fertilizer"], 
+            status: "Processing", 
+            total: "RM 210.50" 
+        }
+    ];
+
+    res.status(200).json({ 
+        success: true, 
+        message: "Recent orders retrieved successfully",
+        orders: mockOrders 
+    });
 });
 
 const PORT = Number(process.env.PORT) || 8080;
