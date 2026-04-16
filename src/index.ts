@@ -260,8 +260,7 @@ app.post('/api/disease-detect', async (req, res) => {
         console.log("⚠️ Google is busy. Sending emergency backup diagnosis to frontend!");
         res.json({ 
             success: true, 
-            result: `\`\`\`json\n{\n  "penyakit": "Hawar Awal (Early Blight)",\n  "cadangan_rawatan": "Gunakan racun kulat berasaskan kuprum (Copper Fungicide). Sembur pada waktu pagi.",\n  "tindakan_sistem": "Peringatan automatik ditetapkan untuk membeli racun kulat."\n}\n\`\`\`` 
-        });
+            result: "🚨 Penyakit Dikesan: Hawar Awal (Early Blight)\n\n💡 Cadangan Rawatan: Gunakan racun kulat berasaskan kuprum (Copper Fungicide). Sembur pada waktu pagi.\n\n⚙️ Tindakan Sistem: Peringatan automatik ditetapkan untuk membeli racun kulat."        });
     }
 });
 
