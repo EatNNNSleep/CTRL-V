@@ -96,17 +96,26 @@ export const diseaseDetectionFlow = ai.defineFlow(
     const prompt = `You are an expert plant pathologist. 
     Analyze this image and identify the disease.
     
-    CRITICAL INSTRUCTION: If you detect an issue, you MUST recommend a product from our specific store inventory below. 
+    CRITICAL INSTRUCTION: You are helping a farmer protect their livelihood. If you detect an issue, you MUST recommend a proactive defense product from our specific store inventory below. 
     Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
     
     Store Inventory:
     ${availableProducts}
     
-    Return a JSON object with:
-    1. "disease_name": The detected issue.
-    2. "severity": "Low", "Medium", or "High".
-    3. "recommended_product": The exact 'product_name' from the store inventory that best treats this issue.
-    4. "price": The exact price of the recommended product.`;
+    IMPORTANT OUTPUT FORMAT:
+    Do NOT return a JSON object. You must return a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
+    
+    Use EXACTLY this format:
+    
+    🚨 Diagnosis: [Exact name of the disease/issue]
+    ⚠️ Severity: [Low / Medium / High]
+    
+    🔬 Analysis: 
+    [Write 2 short, clear sentences explaining exactly what visual symptoms you see on the leaf/crop. Be professional.]
+    
+    🛡️ Proactive Defense: 
+    Apply [Exact 'product_name' from inventory] (RM [price]). 
+    [Write 1 short sentence on how and when to apply this product to protect the crop].`;
 
     const response = await ai.generate({
   model: 'googleai/gemini-2.5-flash',
