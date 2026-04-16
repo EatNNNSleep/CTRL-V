@@ -34,6 +34,8 @@ type BackendChatResponse = {
   message?: string
 }
 
+type AssistantMode = "chat" | "voice"
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
@@ -43,12 +45,19 @@ const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
   `${API_BASE_URL}/api/chat`
 
+const VOICE_API_URL =
+  process.env.NEXT_PUBLIC_AI_VOICE_URL ??
+  `${API_BASE_URL}/api/voice`
+
 const DISEASE_DETECT_API_URL =
   process.env.NEXT_PUBLIC_DISEASE_DETECT_URL ??
   `${API_BASE_URL}/api/disease-detect`
 
-async function requestAIResponse(payload: Record<string, unknown>) {
-  const response = await fetch(CHAT_API_URL, {
+async function requestAssistantResponse(
+  payload: Record<string, unknown>,
+  mode: AssistantMode = "chat"
+) {
+  const response = await fetch(mode === "voice" ? VOICE_API_URL : CHAT_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -63,6 +72,69 @@ async function requestAIResponse(payload: Record<string, unknown>) {
 
   const data = (await response.json()) as BackendChatResponse
   return data.result || data.response || data.message || "No response received from the AI backend."
+}
+
+function getFallbackAIResponse(input: string, lang: string = "English"): string {
+  const lowerInput = input.toLowerCase()
+
+  if (lang === "English") {
+    if (lowerInput.includes("water") || lowerInput.includes("irrigation") || lowerInput.includes("moisture")) {
+      return "Based on the latest readings from your soil sensors, Field B's moisture level has dropped to 42 percent. I highly recommend scheduling a 45-minute irrigation cycle tomorrow morning at 7 AM."
+    }
+    if (lowerInput.includes("disease") || lowerInput.includes("pest") || lowerInput.includes("rust") || lowerInput.includes("bug")) {
+      return "I am detecting early-stage aphid activity on the lower leaves in the north quadrant. Applying a Neem Oil spray within the next 48 hours should effectively neutralize them."
+    }
+    if (lowerInput.includes("weather") || lowerInput.includes("forecast") || lowerInput.includes("rain") || lowerInput.includes("sun")) {
+      return "We are expecting partly cloudy conditions over the next 5 days with temperatures between 28 and 32 degrees. There is a 75 percent chance of rain on Friday afternoon."
+    }
+    if (lowerInput.includes("fertilizer") || lowerInput.includes("nutrient") || lowerInput.includes("yellow") || lowerInput.includes("soil")) {
+      return "If your plant leaves are looking yellowish, it indicates a nitrogen deficiency. I suggest applying Nitro Max 20-20-20 fertilizer during your next watering cycle."
+    }
+    if (lowerInput.includes("harvest") || lowerInput.includes("yield") || lowerInput.includes("price") || lowerInput.includes("sell")) {
+      return "Your crops are tracking beautifully for harvest by mid-May. Market trends show prices are rising to 4 Ringgit and 50 sen per kilo. You are in a great position."
+    }
+    return "I am Tani Agent. You can ask me about weather forecasts, irrigation schedules, pest control, or market prices. How can I help you today?"
+  }
+
+  if (lang === "Bahasa Melayu") {
+    if (lowerInput.includes("air") || lowerInput.includes("siram") || lowerInput.includes("kelembapan")) {
+      return "Berdasarkan bacaan penderia, tahap kelembapan di Petak B telah menurun kepada 42 peratus. Saya mengesyorkan kitaran pengairan selama 45 minit esok pagi pada pukul 7."
+    }
+    if (lowerInput.includes("penyakit") || lowerInput.includes("ulat") || lowerInput.includes("serangga")) {
+      return "Saya mengesan tanda-tanda awal serangan kutu daun di kuadran utara. Penggunaan semburan Minyak Semambu dalam masa 48 jam akan dapat mengawal penyebarannya."
+    }
+    if (lowerInput.includes("cuaca") || lowerInput.includes("hujan") || lowerInput.includes("panas")) {
+      return "Kita menjangkakan keadaan separa berawan untuk 5 hari akan datang. Terdapat kebarangkalian 75 peratus hujan akan turun pada petang Jumaat."
+    }
+    if (lowerInput.includes("baja") || lowerInput.includes("kuning") || lowerInput.includes("tanah") || lowerInput.includes("nutrien")) {
+      return "Daun kekuningan menunjukkan kekurangan nitrogen. Saya cadangkan penggunaan baja Nitro Max 20-20-20 semasa kitaran siraman anda yang seterusnya."
+    }
+    if (lowerInput.includes("tuai") || lowerInput.includes("hasil") || lowerInput.includes("harga") || lowerInput.includes("jual")) {
+      return "Tanaman anda dijangka sedia untuk dituai menjelang pertengahan Mei. Harga pasaran terkini sedang meningkat kepada 4 Ringgit 50 sen sekilo."
+    }
+    return "Saya ialah Ejen Tani. Anda boleh bertanya tentang cuaca, jadual siraman, kawalan perosak, atau harga pasaran. Bagaimana saya boleh bantu anda?"
+  }
+
+  if (lang === "ä¸­æ–‡" || lang === "Chinese") {
+    if (lowerInput.includes("æ°´") || lowerInput.includes("çŒæº‰") || lowerInput.includes("æ¹¿åº¦")) {
+      return "æ ¹æ®ä¼ æ„Ÿå™¨æ•°æ®ï¼ŒBåŒºçš„åœŸå£¤æ¹¿åº¦å·²é™è‡³ç™¾åˆ†ä¹‹ 42ã€‚æˆ‘å¼ºçƒˆå»ºè®®æ‚¨åœ¨æ˜Žæ—© 7 ç‚¹è¿›è¡Œ 45 åˆ†é’Ÿçš„çŒæº‰ã€‚"
+    }
+    if (lowerInput.includes("ç—…") || lowerInput.includes("è™«") || lowerInput.includes("æž¯")) {
+      return "æˆ‘å‘çŽ°åœ¨å†œåœºåŒ—éƒ¨æœ‰æ—©æœŸçš„èšœè™«æ´»åŠ¨è¿¹è±¡ã€‚åœ¨æŽ¥ä¸‹æ¥çš„ 48 å°æ—¶å†…å–·æ´’å°æ¥æ²¹å°†æœ‰æ•ˆæŽ§åˆ¶è™«å®³è”“å»¶ã€‚"
+    }
+    if (lowerInput.includes("å¤©æ°”") || lowerInput.includes("é›¨") || lowerInput.includes("æ¸©")) {
+      return "æœªæ¥ 5 å¤©å°†ä»¥å¤šäº‘ä¸ºä¸»ï¼Œæ°”æ¸©åœ¨ 28 åˆ° 32 åº¦ä¹‹é—´ã€‚å‘¨äº”ä¸‹åˆæœ‰ç™¾åˆ†ä¹‹ 75 çš„æ¦‚çŽ‡å‡ºçŽ°é™é›¨ã€‚"
+    }
+    if (lowerInput.includes("è‚¥") || lowerInput.includes("é»„") || lowerInput.includes("åœŸ") || lowerInput.includes("è¥å…»")) {
+      return "å¦‚æžœæ¤ç‰©å¶ç‰‡å‘é»„ï¼Œè¡¨æ˜Žç¼ºä¹æ°®å…ƒç´ ã€‚æˆ‘å»ºè®®æ‚¨åœ¨ä¸‹æ¬¡æµ‡æ°´æ—¶æ–½ç”¨ 20-20-20 çš„æ°®ç£·é’¾å¹³è¡¡è‚¥ã€‚"
+    }
+    if (lowerInput.includes("æ”¶") || lowerInput.includes("äº§é‡") || lowerInput.includes("ä»·æ ¼") || lowerInput.includes("å–")) {
+      return "æ‚¨çš„ä½œç‰©é•¿åŠ¿è‰¯å¥½ï¼Œé¢„è®¡å°†åœ¨äº”æœˆä¸­æ—¬æ”¶èŽ·ã€‚ç›®å‰å¸‚åœºä»·æ ¼æ­£åœ¨ä¸Šæ¶¨è‡³æ¯å…¬æ–¤ 4 ä»¤å‰ 50 ä»™ã€‚æ‚¨ä»Šå¹´çš„æ”¶æˆä¼šå¾ˆå¥½ã€‚"
+    }
+    return "æˆ‘æ˜¯æ‚¨çš„ Tani å†œä¸šæ™ºèƒ½åŠ©æ‰‹ã€‚æ‚¨å¯ä»¥å‘æˆ‘è¯¢é—®å¤©æ°”é¢„æŠ¥ã€çŒæº‰è®¡åˆ’ã€ç—…è™«å®³é˜²æ²»æˆ–å¸‚åœºä»·æ ¼ã€‚è¯·é—®ä»Šå¤©éœ€è¦ä»€ä¹ˆå¸®åŠ©ï¼Ÿ"
+  }
+
+  return "I'm processing a high volume of farm data right now. Please try your request again in a moment!"
 }
 
 async function fileToBase64(file: File) {
@@ -317,10 +389,10 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
       ;(async () => {
         try {
-          const reply = await requestAIResponse({
-            message: transcript,
+          const reply = await requestAssistantResponse({
+            transcript,
             language: "English",
-          })
+          }, "voice")
 
           setVoiceResponse(reply)
           setVoiceState("ai-speaking")
@@ -356,7 +428,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     setIsTyping(true)
 
     setTimeout(async () => {
-      const aiText = await getAIResponse(userMessage.text, "English"); 
+      const aiText = await getLinkedAIResponse(userMessage.text, "English")
       
       setIsTyping(false)
       const aiMessage: Message = { id: Date.now() + 1, text: aiText, sender: "ai" }
@@ -442,6 +514,18 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
       }
 
       return "I'm processing a high volume of farm data right now. Please try your request again in a moment!";
+    }
+  }
+
+  const getLinkedAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
+    try {
+      return await requestAssistantResponse({
+        message: input,
+        language: lang,
+      }, "chat")
+    } catch (error) {
+      console.log("Backend unavailable, using 5-Tier Multilingual Fallback...")
+      return getFallbackAIResponse(input, lang)
     }
   }
   

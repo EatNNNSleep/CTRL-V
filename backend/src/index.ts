@@ -214,7 +214,34 @@ export const multilingualChatFlow = ai.defineFlow({
 });
 
 // ==========================================
-// AGENT 5: COMMUNITY TRANSLATOR
+// AGENT 5: VOICE FARMING ASSISTANT
+// ==========================================
+export const voiceAssistantFlow = ai.defineFlow({
+    name: 'voiceAssistantFlow',
+    inputSchema: z.object({
+        transcript: z.string(),
+        language: z.string().default("English"),
+    }),
+    outputSchema: z.string(),
+}, async (input) => {
+    const prompt = `You are TaniAgent Voice, the spoken version of a helpful AI farming assistant in Malaysia.
+    A farmer said: "${input.transcript}".
+
+    Give a direct answer that sounds natural when read aloud.
+    You MUST reply entirely in ${input.language}.
+    Keep it practical, polite, and under 3 short sentences.
+    Avoid markdown, bullet points, or labels.`;
+
+    const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: prompt,
+    });
+
+    return response.text;
+});
+
+// ==========================================
+// AGENT 6: COMMUNITY TRANSLATOR
 // ==========================================
 export const translatePostFlow = ai.defineFlow({
     name: 'translatePostFlow',
@@ -313,8 +340,23 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+//Agent 5
+app.post('/api/voice', async (req, res) => {
+    try {
+        const result = await voiceAssistantFlow(req.body);
+        res.json({ success: true, result: result });
+    } catch (error) {
+        console.error("Agent 5 Error:", error);
+        console.log("âš ï¸ Sending backup Voice data...");
+        res.json({
+            success: true,
+            result: "I couldn't reach the voice assistant just now. Please try again in a moment."
+        });
+    }
+});
 
-// Agent 5
+
+// Agent 6
 app.post('/api/translate', async (req, res) => {
     try {
         const result = await translatePostFlow(req.body);
