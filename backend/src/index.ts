@@ -93,8 +93,8 @@ export const diseaseDetectionFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const prompt = `You are an expert plant pathologist. 
-    Analyze this image and identify the disease.
+    const prompt = `You are TaniAgent, an expert plant pathologist and a supportive farming assistant. 
+    Analyze this image and identify any plant disease, pest issue, or nutrient deficiency.
     
     CRITICAL INSTRUCTION: You are helping a farmer protect their livelihood. If you detect an issue, you MUST recommend a proactive defense product from our specific store inventory below. 
     Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
@@ -115,16 +115,19 @@ export const diseaseDetectionFlow = ai.defineFlow(
     
     🛡️ Proactive Defense: 
     Apply [Exact 'product_name' from inventory] (RM [price]). 
-    [Write 1 short sentence on how and when to apply this product to protect the crop].`;
+    [Write 1 short sentence on how and when to apply this product to protect the crop].
+    `;
 
     const response = await ai.generate({
-  model: 'googleai/gemini-2.5-flash',
-  prompt: prompt,
-});
-
-    return response.text;
-  }
-);
+        model: 'googleai/gemini-2.5-flash',
+        prompt: [
+                { text: prompt },
+                { media: { url: input.imageUrl } }
+        ],
+        });
+            return response.text;
+        }
+    );
 
 // ==========================================
 // AGENT 2: Smart Resource Planner
@@ -256,8 +259,6 @@ app.post('/api/disease-detect', async (req, res) => {
         res.json({ success: true, result: result });
     } catch (error) {
         console.error("Agent 1 Error:", error);
-
-        //  HACKATHON BYPASS: If Google is busy, send backup diagnosis!
         console.log("⚠️ Google is busy. Sending emergency backup diagnosis to frontend!");
         res.json({ 
             success: true, 
