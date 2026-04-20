@@ -8,6 +8,8 @@ Built during the Hackathon (Track 1), this platform leverages Google's Gemini AP
 
 **Live Demo**
 
+Video Demo: https://www.youtube.com/watch?v=ubjV_O9CxW8
+
 Frontend Web App: https://tani-agent.web.app
 
 Backend API (Cloud Run): https://tani-backend-215077089845.asia-southeast1.run.app
