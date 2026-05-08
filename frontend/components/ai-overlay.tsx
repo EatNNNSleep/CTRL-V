@@ -39,7 +39,7 @@ type AssistantMode = "chat" | "voice"
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "https://farm-agents-586729303053.asia-southeast1.run.app"
+  "https://tani-backend-215077089845.asia-southeast1.run.app"
 
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
@@ -389,9 +389,10 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
       ;(async () => {
         try {
+          const detectedLang = detectLanguage(transcript);
           const reply = await requestAssistantResponse({
             transcript,
-            language: "English",
+            language: detectedLang, // <--- Use the detected language!
           }, "voice")
 
           setVoiceResponse(reply)
@@ -420,6 +421,19 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
   }
 
   // ================= 3. CHAT LOGIC =================
+  const detectLanguage = (text: string) => {
+    // 1. If it has Chinese characters, it's Chinese
+    if (/[\u4e00-\u9fa5]/.test(text)) return "Chinese";
+    
+    // 2. If it has common Malay words, it's Bahasa Melayu
+    const malayWords = ["apa", "kenapa", "macam", "bila", "siram", "baja", "tanah", "pokok", "cuaca", "hari", "ini", "masalah"];
+    const lowerText = text.toLowerCase();
+    if (malayWords.some(word => lowerText.includes(word))) return "Bahasa Melayu";
+    
+    // 3. Otherwise, default to English
+    return "English";
+  };
+
   const handleChatSend = () => {
     if (!chatInput.trim()) return
     const userMessage: Message = { id: Date.now(), text: chatInput, sender: "user" }
@@ -428,7 +442,8 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     setIsTyping(true)
 
     setTimeout(async () => {
-      const aiText = await getLinkedAIResponse(userMessage.text, "English")
+      const detectedLang = detectLanguage(userMessage.text);
+      const aiText = await getLinkedAIResponse(userMessage.text, detectedLang);
       
       setIsTyping(false)
       const aiMessage: Message = { id: Date.now() + 1, text: aiText, sender: "ai" }
@@ -438,7 +453,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   const getAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
     try {
-      const response = await fetch("https://farm-agents-586729303053.asia-southeast1.run.app/api/chat", {
+      const response = await fetch("https://tani-backend-215077089845.asia-southeast1.run.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input, language: lang }),
