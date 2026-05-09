@@ -33,6 +33,11 @@ import {
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
 
+// Add state for live weather
+const [weather, setWeather] = useState({
+  temp: "--", feelsLike: "--", humidity: "--", condition: "Loading...", wind: "--"
+});
+
 export default function AgriDashboard() {
   const { address, setAIOverlayTab, setIsAIOverlayOpen } = useUI() // Read shared UI state
   
@@ -57,6 +62,60 @@ export default function AgriDashboard() {
 
       return () => clearInterval(timer);
   }, []);
+
+  // --- Fetch Live Weather ---
+  useEffect(() => {
+    const fetchLiveWeather = async () => {
+      try {
+        // We use the address from your UI state, or default to Klang
+        const currentLoc = address || "Klang, Malaysia";
+        const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${currentLoc}`;
+        
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update our state with the real data from the backend
+          setWeather({
+            temp: result.data.temp,
+            feelsLike: result.data.feels_like,
+            humidity: result.data.humidity,
+            condition: result.data.conditions,
+            wind: result.data.wind_speed
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch live weather", error);
+      }
+    };
+
+    fetchLiveWeather();
+  }, [address]); // The [address] means it will re-fetch if the user changes location!
+
+  useEffect(() => {
+  const fetchLiveWeather = async () => {
+    try {
+      // Replace with your actual deployed backend URL if testing in production
+      const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${address || "Klang, Malaysia"}`;
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        setWeather({
+          temp: result.data.temp,
+          feelsLike: result.data.feels_like,
+          humidity: result.data.humidity,
+          condition: result.data.conditions,
+          wind: result.data.wind_speed
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch live weather", error);
+    }
+  };
+
+  fetchLiveWeather();
+}, [address]); // Re-run this if the user changes their location
 
   const [viewingCropIndex, setViewingCropIndex] = useState<number | null>(null)
   
@@ -95,13 +154,21 @@ export default function AgriDashboard() {
     setIsGeneratingTasks(true);
     
     try {
+      const enrichedCrops = crops.map(c => ({
+        name: c.name,
+        health: c.healthStatus,
+        growth: `${c.growth}%`,
+        notes: c.notes
+      }));
+    
       const response = await fetch("https://farm-agents-586729303053.asia-southeast1.run.app/api/farm-schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          location: address || "Shah Alam", 
-          weatherForecast: "32°C, Sunny & Humid", 
-          cropType: crops.map(c => c.name).join(", ") 
+        location: address || "Klang, Malaysia", 
+        weatherForecast: `${weather.temp}°C, ${weather.condition} with ${weather.humidity}% humidity`, 
+        cropType: crops.map(c => c.name).join(", "),
+        crops: enrichedCrops
         }),
       });
 
@@ -118,9 +185,13 @@ export default function AgriDashboard() {
           completed: false
         }));
         // ADD AI tasks to the top of the existing tasks
-        setTasks(prev => [...newAITasks, ...prev]);
+        setTasks(prev => {
+          const existingTaskTexts = new Set(prev.map(t => t.text));
+          const uniqueNewTasks = newAITasks.filter(t => !existingTaskTexts.has(t.text));
+          return [...uniqueNewTasks, ...prev];
+      });
       }
-
+      
     } catch (error) {
       console.log("Backend unavailable, using smart fallback...");
       
@@ -256,34 +327,40 @@ export default function AgriDashboard() {
           <div className="flex items-start justify-between mb-5">
             <div>
               <div className="flex items-start gap-1">
-                <span className="text-6xl font-black text-[#2a5d44] tracking-tighter">32</span>
+                {/* Replaced '32' with real temp */}
+                <span className="text-6xl font-black text-[#2a5d44] tracking-tighter">{weather.temp}</span>
                 <span className="text-2xl font-bold text-gray-300 mt-2">°C</span>
               </div>
               <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1 font-medium">
                 <Sun className="h-4 w-4 text-amber-500 fill-amber-500" />
-                Sunny & Humid
+                {/* Replaced 'Sunny & Humid' */}
+                {weather.condition}
               </p>
             </div>
             <div className="bg-[#e8f5e9] rounded-2xl px-4 py-2.5">
               <p className="text-[10px] text-[#2a5d44]/70 font-bold uppercase tracking-wider mb-0.5">Feels like</p>
-              <p className="text-xl font-black text-[#2a5d44]">35°C</p>
+              {/* Replaced '35°C' */}
+              <p className="text-xl font-black text-[#2a5d44]">{weather.feelsLike}°C</p>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-5">
             <div className="bg-blue-50 rounded-2xl p-3 flex flex-col items-center">
               <Droplets className="h-5 w-5 text-blue-500 mb-1" />
-              <p className="text-lg font-bold text-gray-800">85%</p>
+              {/* Replaced '85%' */}
+              <p className="text-lg font-bold text-gray-800">{weather.humidity}%</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase">Humidity</p>
             </div>
             <div className="bg-orange-50 rounded-2xl p-3 flex flex-col items-center">
               <Thermometer className="h-5 w-5 text-orange-500 mb-1" />
+              {/* Keeping Soil Temp static for now, or you could add it later */}
               <p className="text-lg font-bold text-gray-800">28°C</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase">Soil Temp</p>
             </div>
             <div className="bg-cyan-50 rounded-2xl p-3 flex flex-col items-center">
               <Wind className="h-5 w-5 text-cyan-500 mb-1" />
-              <p className="text-lg font-bold text-gray-800">8</p>
+              {/* Replaced '8' */}
+              <p className="text-lg font-bold text-gray-800">{weather.wind}</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase">km/h Wind</p>
             </div>
           </div>
@@ -360,7 +437,6 @@ export default function AgriDashboard() {
         </div>
       </section>
 
-      {/* AI Action Plan */}
       {/* AI Action Plan */}
       <section className="px-5 mb-6">
         <div className="flex items-center justify-between mb-3">

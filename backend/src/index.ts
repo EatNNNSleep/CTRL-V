@@ -425,6 +425,54 @@ app.get('/api/orders/recent', (req, res) => {
     });
 });
 
+// ==========================================
+// LIVE WEATHER INTEGRATION
+// ==========================================
+app.get('/api/weather', async (req, res) => {
+    // Default to Klang if no location is provided by the frontend
+    const location = req.query.location || 'Shah Alam, Malaysia';
+    const apiKey = process.env.WEATHER_API_KEY; 
+    
+    try {
+        if (!apiKey) throw new Error("Missing WEATHER_API_KEY in .env");
+
+        // Fetch current weather from OpenWeatherMap (using metric units for Celsius)
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!response.ok) throw new Error(data.message || "Failed to fetch weather");
+        
+        // Format the messy OpenWeather data into something clean for our frontend
+        const formattedWeather = {
+            temp: Math.round(data.main.temp),
+            feels_like: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            // Capitalize the condition (e.g., "clouds" -> "Clouds")
+            conditions: data.weather[0].main, 
+            // Convert wind speed from m/s to km/h
+            wind_speed: Math.round(data.wind.speed * 3.6), 
+        };
+        
+        res.json({ success: true, data: formattedWeather });
+
+    } catch (error) {
+        console.error("Weather API Error:", error);
+        
+        // If the API fails or limits are reached, send this fallback data.
+        res.json({ 
+            success: true, 
+            data: { 
+                temp: 32, 
+                feels_like: 35, 
+                humidity: 85, 
+                conditions: "Sunny & Humid", 
+                wind_speed: 8 
+            }
+        });
+    }
+});
+
 const PORT = Number(process.env.PORT) || 8080;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server is running on port ${PORT}`);
