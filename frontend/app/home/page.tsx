@@ -92,31 +92,7 @@ export default function AgriDashboard() {
     fetchLiveWeather();
   }, [address]); // The [address] means it will re-fetch if the user changes location!
 
-  useEffect(() => {
-  const fetchLiveWeather = async () => {
-    try {
-      // Replace with your actual deployed backend URL if testing in production
-      const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${address || "Klang, Malaysia"}`;
-      const response = await fetch(url);
-      const result = await response.json();
-      
-      if (result.success) {
-        setWeather({
-          temp: result.data.temp,
-          feelsLike: result.data.feels_like,
-          humidity: result.data.humidity,
-          condition: result.data.conditions,
-          wind: result.data.wind_speed
-        });
-      }
-    } catch (error) {
-      console.error("Failed to fetch live weather", error);
-    }
-  };
-
-  fetchLiveWeather();
-}, [address]); // Re-run this if the user changes their location
-
+  
   const [viewingCropIndex, setViewingCropIndex] = useState<number | null>(null)
   
   const predefinedZones = ["Main Plot", "Plot 2", "Greenhouse A", "Hydroponics"]
