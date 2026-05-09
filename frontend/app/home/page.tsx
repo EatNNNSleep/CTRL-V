@@ -33,14 +33,14 @@ import {
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
 
-// Add state for live weather
-const [weather, setWeather] = useState({
-  temp: "--", feelsLike: "--", humidity: "--", condition: "Loading...", wind: "--"
-});
+
 
 export default function AgriDashboard() {
   const { address, setAIOverlayTab, setIsAIOverlayOpen } = useUI() // Read shared UI state
-  
+  // Add state for live weather
+  const [weather, setWeather] = useState({
+    temp: "--", feelsLike: "--", humidity: "--", condition: "Loading...", wind: "--"
+  });
   // ================= States =================
   const [showCropModal, setShowCropModal] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
