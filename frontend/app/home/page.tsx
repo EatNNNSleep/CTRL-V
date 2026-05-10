@@ -36,7 +36,7 @@ import { useUI } from "../../components/map-dashboard/ui-context" // Access shar
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "https://localhost:8080" // Default to production backend
+  "https://farm-agents-586729303053.asia-southeast1.run.app"
 
 
 
@@ -74,7 +74,7 @@ export default function AgriDashboard() {
     const fetchLiveWeather = async () => {
       try {
         const weatherCity = "Cameron Highlands, Malaysia";
-        const url = `${API_BASE_URL}/api/weather?location=${encodeURIComponent(weatherCity)}`;        
+        const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${encodeURIComponent(weatherCity)}`;        
         const response = await fetch(url);
         
         // 1. SAFETY CHECK: Did the server send a bad response (like a 404 HTML page)?
