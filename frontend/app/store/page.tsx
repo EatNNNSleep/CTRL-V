@@ -115,10 +115,11 @@ export default function StorePage() {
   const [deliveryInfo, setDeliveryInfo] = useState({
     name: "Pak Ali",
     phone: "+60 12-345 6789",
-    street: "123 Jalan Pertanian",
-    postcode: "41000",
-    city: "Klang, Selangor"
-  })
+    street: "Batu 43, Kea Farm",
+    postcode: "39100",
+    city: "Cameron Highlands, Pahang"
+      })
+
   // Temporary form state for editing
   const [addressForm, setAddressForm] = useState({ ...deliveryInfo })
 

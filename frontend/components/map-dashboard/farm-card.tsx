@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Sun, Leaf, ChevronRight, Droplets, ChevronUp, X, Wheat, Apple, Carrot, TrendingUp, Calendar, DollarSign, ChevronDown, Check } from "lucide-react";
+import { MapPin, Sun, Leaf, ChevronRight, Droplets, ChevronUp, X, Apple, Carrot, TrendingUp, Calendar, DollarSign, ChevronDown, Check } from "lucide-react";
 import { useUI } from "./ui-context";
 
 interface CropData {
@@ -35,21 +35,6 @@ const crops: CropData[] = [
     marketPrice: "RM 4.50/kg",
     healthStatus: "Excellent",
     prediction: "High yield expected. Optimal growing conditions detected.",
-  },
-  {
-    id: "wheat",
-    name: "Wheat",
-    icon: <Wheat className="w-5 h-5 text-white" />,
-    color: "from-amber-500 to-amber-600",
-    bgColor: "bg-amber-50",
-    growth: 85,
-    humidity: 62,
-    plantedDate: "Jan 10, 2026",
-    harvestDate: "Apr 25, 2026",
-    expectedYield: "4,200 kg",
-    marketPrice: "RM 2.80/kg",
-    healthStatus: "Good",
-    prediction: "Ready for harvest soon. Monitor moisture levels.",
   },
   {
     id: "carrots",
@@ -149,7 +134,7 @@ export function FarmCard() {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-full">
                 <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-semibold text-amber-600">32°C</span>
+                <span className="text-xs font-semibold text-amber-600"></span>
               </div>
               <ChevronUp className="w-5 h-5 text-gray-400" />
             </div>

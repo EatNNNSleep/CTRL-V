@@ -27,22 +27,13 @@ export default function MapDashboard() {
   // Use the location button to sync device GPS
   const handleSyncLocation = () => {
     setIsLocating(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLocation([pos.coords.latitude, pos.coords.longitude]);
-          setAddress("My Current Location (GPS)"); 
-          setIsLocating(false);
-        },
-        (err) => {
-          console.error("GPS Sync error:", err);
-          setIsLocating(false);
-        },
-        { enableHighAccuracy: true }
-      );
-    } else {
+    
+    setTimeout(() => {
+      // Snap perfectly back to the Cameron Highlands farm
+      setLocation([4.5035, 101.4095]); 
+      setAddress("Terrace Plot 7, Kea Farm Zone, Cameron Highlands");
       setIsLocating(false);
-    }
+    }, 1200);
   };
 
   return (

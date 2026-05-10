@@ -46,8 +46,7 @@ export function MapBackground() {
   const { location } = useUI();
 
   // Threat zone center (slightly offset from current location)
-  const threatPosition: [number, number] = [location[0] + 0.015, location[1] + 0.02];
-
+const threatPosition: [number, number] = [location[0] + 0.02, location[1] + 0.02];
   return (
     <div className="absolute inset-0 w-full h-full z-0">
       <MapContainer 
@@ -56,33 +55,35 @@ export function MapBackground() {
         zoomControl={false} 
         className="w-full h-full cursor-crosshair"
       >
-        {/* High-resolution Google satellite tiles */}
         <TileLayer
           url="https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}"
           maxZoom={20}
           subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
         />
         
-        {/* Dynamic marker for current location */}
         <Marker position={location} icon={customIcon}>
           <Popup>
             <div className="text-center">
-              <strong className="text-green-600 text-lg">My Farm</strong>
-              <br />Location Synced
+              <strong className="text-green-600 text-lg">Plot 42</strong>
+              <br />Sekinchan Cash Crop Zone
             </div>
           </Popup>
         </Marker>
 
-        {/* Threat alert circle */}
+        {/* Updated Threat Circle for Leaf Rust */}
         <Circle 
           center={threatPosition} 
-          radius={1500} 
-          pathOptions={{ color: 'red', fillColor: '#ef4444', fillOpacity: 0.4 }} 
+          radius={800} 
+          pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.3 }} 
         >
-          <Popup>⚠️ Alert: High Humidity Risk Area</Popup>
+          <Popup>
+            <div className="text-center">
+              <strong className="text-red-600 font-bold">⚠️ High Risk Zone</strong>
+              <br />Fungal Leaf Rust Outbreak
+            </div>
+          </Popup>
         </Circle>
 
-        {/* Render invisible listener components */}
         <LocationTracker position={location} />
         <MapClickHandler />
       </MapContainer>

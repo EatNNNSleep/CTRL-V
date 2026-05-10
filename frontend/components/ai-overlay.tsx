@@ -39,7 +39,7 @@ type AssistantMode = "chat" | "voice"
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "https://tani-backend-215077089845.asia-southeast1.run.app"
+  "http://localhost:8080"
 
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
@@ -453,17 +453,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   const getAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
     try {
-      const response = await fetch("https://tani-backend-215077089845.asia-southeast1.run.app/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, language: lang }),
-      });
-
-      if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-      
-      const data = await response.json();
-      return data.result;
-
+      return await requestAssistantResponse({ message: input, language: lang }, "chat")
     } catch (error) {
       console.log("Backend unavailable, using 5-Tier Multilingual Fallback...");
       const lowerInput = input.toLowerCase();

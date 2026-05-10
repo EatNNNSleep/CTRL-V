@@ -33,6 +33,11 @@ import {
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  "https://localhost:8080" // Default to production backend
+
 
 
 export default function AgriDashboard() {
@@ -68,9 +73,8 @@ export default function AgriDashboard() {
   useEffect(() => {
     const fetchLiveWeather = async () => {
       try {
-        const currentLoc = address || "Klang, Malaysia";
-        const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${currentLoc}`;
-        
+        const weatherCity = "Cameron Highlands, Malaysia";
+        const url = `${API_BASE_URL}/api/weather?location=${encodeURIComponent(weatherCity)}`;        
         const response = await fetch(url);
         
         // 1. SAFETY CHECK: Did the server send a bad response (like a 404 HTML page)?
@@ -154,7 +158,7 @@ export default function AgriDashboard() {
 
       // 2. The master list of our fake AI tasks (using your live weather!)
       const taskPool = [
-        { id: Date.now() + 1, text: `✨ AI: Heavy evening watering required for Tomatoes due to ${weather.temp}°C heat.`, completed: false },
+        { id: Date.now() + 1, text: `✨ AI: Heavy evening watering required for Tomatoes due to ${weather.temp}°C .`, completed: false },
         { id: Date.now() + 2, text: "✨ AI: Apply Copper Fungicide to Field B to prevent Leaf Rust.", completed: false },
         { id: Date.now() + 3, text: `✨ AI: Monitor Chili Pepper for pests (High Humidity risk at ${weather.humidity}%).`, completed: false },
         { id: Date.now() + 4, text: "✨ AI: Prepare to harvest early batch of Corn by next Tuesday.", completed: false }
@@ -336,7 +340,7 @@ export default function AgriDashboard() {
             <div className="bg-orange-50 rounded-2xl p-3 flex flex-col items-center">
               <Thermometer className="h-5 w-5 text-orange-500 mb-1" />
               {/* Keeping Soil Temp static for now, or you could add it later */}
-              <p className="text-lg font-bold text-gray-800">28°C</p>
+              <p className="text-lg font-bold text-gray-800">19°C</p>
               <p className="text-[10px] font-bold text-gray-400 uppercase">Soil Temp</p>
             </div>
             <div className="bg-cyan-50 rounded-2xl p-3 flex flex-col items-center">
@@ -353,7 +357,7 @@ export default function AgriDashboard() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-red-600">Leaf Rust Alert (5km)</p>
-              <p className="text-xs text-red-500/80 font-medium">High humidity detected in Klang. Scan crops frequently.</p>
+              <p className="text-xs text-red-500/80 font-medium">High humidity detected. Scan crops frequently.</p>
             </div>
           </div>
         </div>
@@ -512,7 +516,7 @@ export default function AgriDashboard() {
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-full">
                     <Sun className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-bold text-amber-600">32°C</span>
+                    <span className="text-sm font-bold text-amber-600"></span>
                   </div>
                   <button onClick={() => setViewingCropIndex(null)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95">
                     <X className="w-5 h-5 text-gray-600" />
