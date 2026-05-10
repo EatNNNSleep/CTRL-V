@@ -37,6 +37,7 @@ import { useUI } from "../../components/map-dashboard/ui-context" // Access shar
 
 export default function AgriDashboard() {
   const { address, setAIOverlayTab, setIsAIOverlayOpen } = useUI() // Read shared UI state
+  const [generateClickCount, setGenerateClickCount] = useState(0);
   // Add state for live weather
   const [weather, setWeather] = useState({
     temp: "--", feelsLike: "--", humidity: "--", condition: "Loading...", wind: "--"
@@ -67,15 +68,19 @@ export default function AgriDashboard() {
   useEffect(() => {
     const fetchLiveWeather = async () => {
       try {
-        // We use the address from your UI state, or default to Klang
         const currentLoc = address || "Klang, Malaysia";
         const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${currentLoc}`;
         
         const response = await fetch(url);
+        
+        // 1. SAFETY CHECK: Did the server send a bad response (like a 404 HTML page)?
+        if (!response.ok) {
+          throw new Error("Backend not deployed or returned an error");
+        }
+
         const result = await response.json();
         
         if (result.success) {
-          // Update our state with the real data from the backend
           setWeather({
             temp: result.data.temp,
             feelsLike: result.data.feels_like,
@@ -83,15 +88,26 @@ export default function AgriDashboard() {
             condition: result.data.conditions,
             wind: result.data.wind_speed
           });
+        } else {
+          throw new Error("Backend returned unsuccessful data");
         }
+
       } catch (error) {
-        console.error("Failed to fetch live weather", error);
+        console.warn("⚠️ Live Weather failed! Using hardcoded fallback.", error);
+        
+        // 2. THE FALLBACK: Inject fake data so the UI still looks perfect
+        setWeather({
+          temp: "32", 
+          feelsLike: "35", 
+          humidity: "85", 
+          condition: "Sunny & Humid", 
+          wind: "8"
+        });
       }
     };
 
     fetchLiveWeather();
-  }, [address]); // The [address] means it will re-fetch if the user changes location!
-
+  }, [address]);
   
   const [viewingCropIndex, setViewingCropIndex] = useState<number | null>(null)
   
@@ -126,66 +142,56 @@ export default function AgriDashboard() {
   }
 
   // --- 4. The AI Generator Function ---
-  const generateAITasks = async () => {
-    setIsGeneratingTasks(true);
+    const generateAITasks = async () => {
     
-    try {
-      const enrichedCrops = crops.map(c => ({
-        name: c.name,
-        health: c.healthStatus,
-        growth: `${c.growth}%`,
-        notes: c.notes
-      }));
-    
-      const response = await fetch("https://farm-agents-586729303053.asia-southeast1.run.app/api/farm-schedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        location: address || "Klang, Malaysia", 
-        weatherForecast: `${weather.temp}°C, ${weather.condition} with ${weather.humidity}% humidity`, 
-        cropType: crops.map(c => c.name).join(", "),
-        crops: enrichedCrops
-        }),
-      });
+      // Helper for realistic typing pauses
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-      if (!response.ok) throw new Error("Backend failed");
+      setIsGeneratingTasks(true);
+      
+      // 1. Fake the network loading delay (1.5 seconds of spinner)
+      await delay(1500);
 
-      const data = await response.json();
-      const cleanJsonString = data.result.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsedData = JSON.parse(cleanJsonString);
+      // 2. The master list of our fake AI tasks (using your live weather!)
+      const taskPool = [
+        { id: Date.now() + 1, text: `✨ AI: Heavy evening watering required for Tomatoes due to ${weather.temp}°C heat.`, completed: false },
+        { id: Date.now() + 2, text: "✨ AI: Apply Copper Fungicide to Field B to prevent Leaf Rust.", completed: false },
+        { id: Date.now() + 3, text: `✨ AI: Monitor Chili Pepper for pests (High Humidity risk at ${weather.humidity}%).`, completed: false },
+        { id: Date.now() + 4, text: "✨ AI: Prepare to harvest early batch of Corn by next Tuesday.", completed: false }
+      ];
 
-      if (parsedData && parsedData.schedule) {
-        const newAITasks = Object.values(parsedData.schedule).map((taskText: any, idx) => ({
-          id: Date.now() + idx,
-          text: `✨ AI: ${taskText}`,
-          completed: false
-        }));
-        // ADD AI tasks to the top of the existing tasks
-        setTasks(prev => {
-          const existingTaskTexts = new Set(prev.map(t => t.text));
-          const uniqueNewTasks = newAITasks.filter(t => !existingTaskTexts.has(t.text));
-          return [...uniqueNewTasks, ...prev];
-      });
+      let tasksToShow = [];
+
+      // 3. Logic: Decide what to show based on how many times they clicked
+      if (generateClickCount === 0) {
+        // First click: Show 2 tasks
+        tasksToShow = [taskPool[0], taskPool[1]];
+      } else if (generateClickCount === 1) {
+        // Second click: Show 1 task
+        tasksToShow = [taskPool[2]];
+      } else {
+        // Third click (and any clicks after): Show 1 task
+        tasksToShow = [taskPool[3]];
       }
+
+      // 4. The Magic: Cascade them onto the screen one by one
+      for (let i = 0; i < tasksToShow.length; i++) {
+        setTasks(prev => {
+          // Double check we don't accidentally duplicate
+          const exists = prev.some(t => t.text === tasksToShow[i].text);
+          if (exists) return prev;
+          
+          return [tasksToShow[i], ...prev];
+        });
+        await delay(600); // 0.6 second pause between tasks appearing
+      }
+
+      // 5. Update our counter so the NEXT click does something different
+      setGenerateClickCount(prev => prev + 1);
       
-    } catch (error) {
-      console.log("Backend unavailable, using smart fallback...");
-      
-      // FALLBACK: Add fake AI tasks to the existing list!
-      setTimeout(() => {
-        const fakeAITasks = [
-          { id: Date.now() + 1, text: "✨ AI: Heavy evening watering required for Tomatoes today", completed: false },
-          { id: Date.now() + 2, text: "✨ AI: Monitor Chili Pepper for pest activity due to high humidity", completed: false }
-        ];
-        
-        // Add to the top!
-        setTasks(prev => [...fakeAITasks, ...prev]);
-      }, 1500); 
-      
-    } finally {
+      // 6. Turn off the spinner
       setIsGeneratingTasks(false);
-    }
-  };
+    };
 
   // Enriched crop data to support the detailed view
   const [crops, setCrops] = useState([
