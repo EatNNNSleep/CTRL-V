@@ -165,6 +165,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
   const [voiceTranscript, setVoiceTranscript] = useState("")
   const [voiceResponse, setVoiceResponse] = useState("")
   const recognitionRef = useRef<any>(null)
+  const detectedLangRef = useRef<string>("English")
   
   // ================= CHAT STATES =================
   const [messages, setMessages] = useState<Message[]>([])
@@ -312,11 +313,17 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
   }
 
   // ================= 2. VOICE & SPEECH LOGIC =================
-  const playAudio = (text: string) => {
+  const getLangLocale = (lang: string): string => {
+    if (lang === "Chinese") return "zh-CN"
+    if (lang === "Bahasa Melayu") return "ms-MY"
+    return "en-MY"
+  }
+
+  const playAudio = (text: string, lang: string = "English") => {
     if (typeof window !== "undefined" && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel() 
       const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
+      utterance.lang = getLangLocale(lang)
       utterance.rate = 1.0
       
       utterance.onend = () => {
@@ -338,15 +345,14 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         window.speechSynthesis.cancel() 
       }
 
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      const SpeechRecognition = 
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition()
-        // For Bahasa Melayu:
-        recognition.lang = 'ms-MY'; 
-        // OR For Mandarin (Chinese):
-        recognition.lang = 'zh-CN'; 
-        // OR For Malaysian English:
-        recognition.lang = 'en-MY';
+        // Use zh-CN as primary — Chrome will still transcribe Malay and English
+        // correctly alongside it. We also re-detect language from the transcript text.
+        recognition.lang = 'zh-CN'
         recognition.continuous = true
         recognition.interimResults = true
         recognition.onresult = (event: any) => {
@@ -396,20 +402,21 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
       ;(async () => {
         try {
           const detectedLang = detectLanguage(transcript);
+          detectedLangRef.current = detectedLang
           const reply = await requestAssistantResponse({
             transcript,
-            language: detectedLang, // <--- Use the detected language!
+            language: detectedLang,
           }, "voice")
 
           setVoiceResponse(reply)
           setVoiceState("ai-speaking")
-          playAudio(reply)
+          playAudio(reply, detectedLang)
         } catch (error) {
           console.error("Voice request failed:", error)
           const fallback = "I couldn't reach the farm assistant just now. Please try again in a moment."
           setVoiceResponse(fallback)
           setVoiceState("ai-speaking")
-          playAudio(fallback)
+          playAudio(fallback, "English")
         }
       })()
 
@@ -423,7 +430,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   const handleReplayVoice = () => {
     setVoiceState("ai-speaking")
-    playAudio(voiceResponse) 
+    playAudio(voiceResponse, detectedLangRef.current) 
   }
 
   // ================= 3. CHAT LOGIC =================
@@ -432,7 +439,14 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     if (/[\u4e00-\u9fa5]/.test(text)) return "Chinese";
     
     // 2. If it has common Malay words, it's Bahasa Melayu
-    const malayWords = ["apa", "kenapa", "macam", "bila", "siram", "baja", "tanah", "pokok", "cuaca", "hari", "ini", "masalah"];
+    const malayWords = [
+      "apa", "kenapa", "macam", "bila", "siram", "baja", "tanah", "pokok",
+      "cuaca", "hari", "ini", "masalah", "saya", "awak", "boleh", "tidak",
+      "ada", "nak", "perlu", "ladang", "sawah", "buah", "daun", "akar",
+      "hujan", "panas", "sejuk", "petang", "pagi", "malam", "minggu",
+      "harga", "jual", "beli", "tuai", "hasil", "air", "kadar", "petak",
+      "serangga", "ulat", "penyakit", "rawat", "sembur", "pupuk", "nutrien"
+    ];
     const lowerText = text.toLowerCase();
     if (malayWords.some(word => lowerText.includes(word))) return "Bahasa Melayu";
     
