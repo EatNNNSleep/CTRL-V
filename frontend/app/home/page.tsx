@@ -74,7 +74,7 @@ export default function AgriDashboard() {
     const fetchLiveWeather = async () => {
       try {
         const weatherCity = "Cameron Highlands, Malaysia";
-        const url = `https://farm-agents-586729303053.asia-southeast1.run.app/api/weather?location=${encodeURIComponent(weatherCity)}`;        
+        const url = `${API_BASE_URL}/api/weather?location=${encodeURIComponent(weatherCity)}`;        
         const response = await fetch(url);
         
         // 1. SAFETY CHECK: Did the server send a bad response (like a 404 HTML page)?

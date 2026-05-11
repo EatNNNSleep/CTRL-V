@@ -204,8 +204,17 @@ export const multilingualChatFlow = ai.defineFlow({
     const prompt = `You are a helpful AI farming assistant in Malaysia. 
     A farmer asks: "${input.message}". 
     Respond directly to their question using practical farming advice. 
-    You MUST reply entirely in ${input.language}. Keep the answer practical, polite, and under 3 sentences.`;
-    
+    You MUST reply entirely in ${input.language}. Provide a highly detailed and comprehensive answer. Include practical farming advice, specific actionable steps, and market insights if they ask about selling. 
+    CRITICAL RULES:
+    1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
+    2. LENGTH LIMIT: Keep your answers EXTREMELY short and punchy. Maximum 3 brief paragraphs. Get straight to the solution.
+    3. LANGUAGE: You MUST reply entirely in ${input.language}.
+    4. FORMATTING (STRICT): 
+       - DO NOT use single asterisks (*) or hyphens (-) for lists or italics. They will break the UI.
+       - Use ONLY emojis as bullet points (e.g., 💧, 🛡️, 🌿).
+       - Use **bold text** ONLY for main titles.
+       - Use double line breaks (\n\n) between sections so it is easy to read.`;
+       
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: prompt,
@@ -229,9 +238,11 @@ export const voiceAssistantFlow = ai.defineFlow({
 
     Give a direct answer that sounds natural when read aloud.
     You MUST reply entirely in ${input.language}.
-    Keep it practical, polite, and under 3 short sentences.
-    Avoid markdown, bullet points, or labels.`;
-
+    Provide a detailed, thoughtful, and comprehensive answer with practical advice and actionable steps. 
+    CRITICAL RULES:
+    1. You MUST reply entirely in ${input.language}.
+    2. Keep your answer EXTREMELY concise, practical, and under 3 short sentences. 
+    3. Because this is spoken aloud, do NOT use any Markdown symbols, bullet points, emojis, or special characters. Use natural conversational words only.`;
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: prompt,

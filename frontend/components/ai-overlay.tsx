@@ -473,7 +473,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   const getAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
     try {
-      const response = await fetch("https://tani-backend-215077089845.asia-southeast1.run.app/api/chat", {
+      const response = await fetch("https://farm-agents-586729303053.asia-southeast1.run.app/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input, language: lang }),
@@ -564,6 +564,15 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     }
   }
   
+  const formatChatMessage = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="font-bold text-gray-900 text-[15px]">{part.slice(2, -2)}</strong>;
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   if (!isOpen) return null
 
@@ -784,7 +793,8 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
               {voiceState === "ai-speaking" && (
                 <div className="flex justify-start w-full animate-in fade-in slide-in-from-left-4">
-                  <div className="max-w-[90%] bg-gradient-to-br from-[#4caf50]/10 to-[#4caf50]/5 rounded-3xl rounded-bl-sm p-5 border border-[#4caf50]/20 shadow-sm relative">
+                  {/* 👇 ADDED max-h-[50vh] overflow-y-auto HERE 👇 */}
+                  <div className="max-w-[90%] max-h-[50vh] overflow-y-auto bg-gradient-to-br from-[#4caf50]/10 to-[#4caf50]/5 rounded-3xl rounded-bl-sm p-5 border border-[#4caf50]/20 shadow-sm relative">
                     <div className="absolute -top-3 -left-2 bg-white rounded-full p-1 shadow-sm border border-gray-100">
                       <Volume2 className="w-4 h-4 text-[#4caf50] animate-pulse" />
                     </div>
@@ -795,7 +805,8 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
                {voiceState === "result" && voiceResponse && (
                 <div className="flex justify-start w-full">
-                  <div className="max-w-[90%] bg-white rounded-3xl rounded-bl-sm p-5 border border-gray-100 shadow-sm">
+                  {/* 👇 ADDED max-h-[50vh] overflow-y-auto HERE 👇 */}
+                  <div className="max-w-[90%] max-h-[50vh] overflow-y-auto bg-white rounded-3xl rounded-bl-sm p-5 border border-gray-100 shadow-sm">
                     <p className="text-gray-700 leading-relaxed font-medium">{voiceResponse}</p>
                     <button 
                       onClick={handleReplayVoice}
@@ -871,7 +882,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${message.sender === "user" ? "bg-[#4caf50] text-white rounded-br-md" : "bg-white border border-gray-100 text-gray-700 rounded-bl-md"}`}>
-                        <p className="text-sm leading-relaxed">{message.text}</p>
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap">{formatChatMessage(message.text)}</div>
                       </div>
                     </div>
                   ))}
