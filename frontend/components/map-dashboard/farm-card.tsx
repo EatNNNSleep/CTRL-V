@@ -185,7 +185,7 @@ export function FarmCard() {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-full">
                       <Sun className="w-4 h-4 text-amber-500" />
-                      <span className="text-sm font-semibold text-amber-600">32°C</span>
+                      <span className="text-sm font-semibold text-amber-600"></span>
                     </div>
                     <button
                       onClick={closeModal}
@@ -345,14 +345,6 @@ export function FarmCard() {
                     <p className="text-sm text-gray-700">{selectedCrop.prediction}</p>
                   </div>
                 </div>
-              </div>
-
-              {/* Fixed Footer CTA */}
-              <div className="flex-shrink-0 px-5 py-4 border-t border-gray-100 bg-white">
-                <button className={`w-full bg-gradient-to-r ${selectedCrop.color} hover:opacity-90 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]`}>
-                  <span>View Full {selectedCrop.name} Report</span>
-                  <ChevronRight className="w-5 h-5" />
-                </button>
               </div>
             </div>
           </div>

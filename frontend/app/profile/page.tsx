@@ -20,6 +20,7 @@ import {
   Save,
   LogOut,
   Loader2,
+  Globe // Added Globe icon for the language toggle
 } from "lucide-react"
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
@@ -28,6 +29,9 @@ export default function ProfilePage() {
   const router = useRouter()
   const { address } = useUI() // Read shared address from context
   const [farmingMode, setFarmingMode] = useState<"organic" | "conventional">("organic")
+  
+  // NEW: Language State
+  const [appLang, setAppLang] = useState<"English" | "Melayu" | "Chinese">("English")
   
   // Modal visibility state
   const [showEditModal, setShowEditModal] = useState(false)
@@ -50,10 +54,10 @@ export default function ProfilePage() {
   // Real user data state (to demonstrate live updates)
   const [userInfo, setUserInfo] = useState({
     name: "Pak Ali",
-    farm: "Green Valley Estate",
+    farm: "Kea Farm, Cameron Highlands",
     email: "pak.ali.farm@gmail.com",
     payment: "Tng E-wallet",
-    location: "Central Valley, CA 93210" // Kept for compatibility; UI shows shared address
+    location: address // Kept for compatibility; UI shows shared address
   })
 
   // Temporary state for the edit form
@@ -101,7 +105,6 @@ export default function ProfilePage() {
               <h1 className="text-xl font-semibold text-gray-800">{userInfo.name}</h1>
               <p className="text-sm text-gray-500 flex items-center gap-1.5">
                 <Leaf className="w-4 h-4 text-[#4caf50]" />
-                {userInfo.farm}
               </p>
             </div>
           </div>
@@ -165,6 +168,28 @@ export default function ProfilePage() {
             <div className="flex-1">
               <p className="text-xs text-gray-500">Default Payment Method</p>
               <p className="text-sm font-medium text-gray-800">{userInfo.payment}</p>
+            </div>
+          </div>
+
+          {/* NEW: App Language Selector */}
+          <div className="mb-4 pb-4 border-b border-gray-100">
+            <p className="text-xs text-gray-500 mb-2 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5" /> App Language
+            </p>
+            <div className="flex gap-2">
+              {["English", "Melayu", "Chinese"].map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setAppLang(lang as any)}
+                  className={`flex-1 py-3 px-2 rounded-xl text-sm font-medium transition-all ${
+                    appLang === lang
+                      ? "bg-[#4caf50] text-white shadow-md"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {lang === "Chinese" ? "中文" : lang}
+                </button>
+              ))}
             </div>
           </div>
 

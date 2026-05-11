@@ -7,12 +7,12 @@ import {
   Mic,
   MessageCircle,
   ImageIcon,
-  Send,
   Leaf,
   CheckCircle2,
   Loader2,
   Volume2,
-  PlayCircle
+  PlayCircle,
+  Send
 } from "lucide-react"
 
 interface AIOverlayProps {
@@ -115,23 +115,23 @@ function getFallbackAIResponse(input: string, lang: string = "English"): string 
     return "Saya ialah Ejen Tani. Anda boleh bertanya tentang cuaca, jadual siraman, kawalan perosak, atau harga pasaran. Bagaimana saya boleh bantu anda?"
   }
 
-  if (lang === "ä¸­æ–‡" || lang === "Chinese") {
-    if (lowerInput.includes("æ°´") || lowerInput.includes("çŒæº‰") || lowerInput.includes("æ¹¿åº¦")) {
-      return "æ ¹æ®ä¼ æ„Ÿå™¨æ•°æ®ï¼ŒBåŒºçš„åœŸå£¤æ¹¿åº¦å·²é™è‡³ç™¾åˆ†ä¹‹ 42ã€‚æˆ‘å¼ºçƒˆå»ºè®®æ‚¨åœ¨æ˜Žæ—© 7 ç‚¹è¿›è¡Œ 45 åˆ†é’Ÿçš„çŒæº‰ã€‚"
+  if (lang === "中文" || lang === "Chinese") {
+    if (lowerInput.includes("水") || lowerInput.includes("灌溉") || lowerInput.includes("湿度")) {
+      return "根据传感器数据，B区的土壤湿度已降至42%。我强烈建议您在明天早上7点进行45分钟的灌溉。"
     }
-    if (lowerInput.includes("ç—…") || lowerInput.includes("è™«") || lowerInput.includes("æž¯")) {
-      return "æˆ‘å‘çŽ°åœ¨å†œåœºåŒ—éƒ¨æœ‰æ—©æœŸçš„èšœè™«æ´»åŠ¨è¿¹è±¡ã€‚åœ¨æŽ¥ä¸‹æ¥çš„ 48 å°æ—¶å†…å–·æ´’å°æ¥æ²¹å°†æœ‰æ•ˆæŽ§åˆ¶è™«å®³è”“å»¶ã€‚"
+    if (lowerInput.includes("病") || lowerInput.includes("虫") || lowerInput.includes("害虫")) {
+      return "我在农场北部发现了早期的病虫活动迹象。在接下来的48小时内喷洒印楝油将有效控制虫害蔓延。"
     }
-    if (lowerInput.includes("å¤©æ°”") || lowerInput.includes("é›¨") || lowerInput.includes("æ¸©")) {
-      return "æœªæ¥ 5 å¤©å°†ä»¥å¤šäº‘ä¸ºä¸»ï¼Œæ°”æ¸©åœ¨ 28 åˆ° 32 åº¦ä¹‹é—´ã€‚å‘¨äº”ä¸‹åˆæœ‰ç™¾åˆ†ä¹‹ 75 çš„æ¦‚çŽ‡å‡ºçŽ°é™é›¨ã€‚"
+    if (lowerInput.includes("天气") || lowerInput.includes("预报") || lowerInput.includes("雨")) {
+      return "我们预计未来5天，温度在28到32度之间。周五下午有75%的几率降雨。"
     }
-    if (lowerInput.includes("è‚¥") || lowerInput.includes("é»„") || lowerInput.includes("åœŸ") || lowerInput.includes("è¥å…»")) {
-      return "å¦‚æžœæ¤ç‰©å¶ç‰‡å‘é»„ï¼Œè¡¨æ˜Žç¼ºä¹æ°®å…ƒç´ ã€‚æˆ‘å»ºè®®æ‚¨åœ¨ä¸‹æ¬¡æµ‡æ°´æ—¶æ–½ç”¨ 20-20-20 çš„æ°®ç£·é’¾å¹³è¡¡è‚¥ã€‚"
+    if (lowerInput.includes("肥料") || lowerInput.includes("黄色") || lowerInput.includes("土壤") || lowerInput.includes("营养")) {
+      return "如果植物叶片发黄，表明缺乏氮元素。我建议您在下次灌溉时施用20-20-20的氮磷钾平衡肥料。"
     }
-    if (lowerInput.includes("æ”¶") || lowerInput.includes("äº§é‡") || lowerInput.includes("ä»·æ ¼") || lowerInput.includes("å–")) {
-      return "æ‚¨çš„ä½œç‰©é•¿åŠ¿è‰¯å¥½ï¼Œé¢„è®¡å°†åœ¨äº”æœˆä¸­æ—¬æ”¶èŽ·ã€‚ç›®å‰å¸‚åœºä»·æ ¼æ­£åœ¨ä¸Šæ¶¨è‡³æ¯å…¬æ–¤ 4 ä»¤å‰ 50 ä»™ã€‚æ‚¨ä»Šå¹´çš„æ”¶æˆä¼šå¾ˆå¥½ã€‚"
+    if (lowerInput.includes("收获") || lowerInput.includes("产量") || lowerInput.includes("价格") || lowerInput.includes("销售")) {
+      return "您的作物长势良好，预计将在5月中收获。目前市场价格正在上涨至每公斤4令吉50仙。您今年的收成会很好。"
     }
-    return "æˆ‘æ˜¯æ‚¨çš„ Tani å†œä¸šæ™ºèƒ½åŠ©æ‰‹ã€‚æ‚¨å¯ä»¥å‘æˆ‘è¯¢é—®å¤©æ°”é¢„æŠ¥ã€çŒæº‰è®¡åˆ’ã€ç—…è™«å®³é˜²æ²»æˆ–å¸‚åœºä»·æ ¼ã€‚è¯·é—®ä»Šå¤©éœ€è¦ä»€ä¹ˆå¸®åŠ©ï¼Ÿ"
+    return "我是您的 Tani 农业智能助手。您可以向我询问天气预报、灌溉计划、病虫害防治或市场价格。请问今天需要什么帮助？"
   }
 
   return "I'm processing a high volume of farm data right now. Please try your request again in a moment!"
@@ -154,13 +154,14 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
   const [scanResult, setScanResult] = useState("")
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
-  
+  const [isTranslating, setIsTranslating] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   
   // ================= VOICE STATES =================
   const [voiceState, setVoiceState] = useState<"idle" | "recording" | "processing" | "ai-speaking" | "result">("idle")
+  const [voiceInputLang, setVoiceInputLang] = useState<"en-MY" | "ms-MY" | "zh-CN">("en-MY")
   const [recordingTime, setRecordingTime] = useState(0)
   const [voiceTranscript, setVoiceTranscript] = useState("")
   const [voiceResponse, setVoiceResponse] = useState("")
@@ -220,7 +221,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
   // ================= 1. LIVE CAMERA & GALLERY LOGIC =================
   const startCamera = async () => {
     try {
-      // Open camera: environment-facing (rear on phones when available)
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }
       })
@@ -253,7 +253,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
       canvas.height = video.videoHeight
       const ctx = canvas.getContext("2d")
       if (ctx) {
-        // Capture current video frame
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
         const imageUrl = canvas.toDataURL("image/png")
         setUploadedImage(imageUrl)
@@ -288,7 +287,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         body: JSON.stringify({ imageUrl: uploadedImage, language: "English" }),
       })
       
-      // If the backend fails (e.g., 503 or payload too large), throw an error to trigger the fallback
       if (!response.ok) throw new Error("Backend failed or Google is busy");
 
       const data = (await response.json()) as BackendChatResponse
@@ -299,8 +297,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
     } catch (error) {
       console.error("Image analysis failed, triggering smart fallback:", error)
-      
-      // THE HOLLYWOOD FALLBACK: Delay for 2.5 seconds to show the cool scanning animation
       setTimeout(() => {
         setScanState("result")
         setScanResult(
@@ -350,9 +346,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         (window as any).webkitSpeechRecognition
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition()
-        // Use zh-CN as primary — Chrome will still transcribe Malay and English
-        // correctly alongside it. We also re-detect language from the transcript text.
-        recognition.lang = 'zh-CN'
+        recognition.lang = voiceInputLang
         recognition.continuous = true
         recognition.interimResults = true
         recognition.onresult = (event: any) => {
@@ -364,8 +358,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         }
         recognition.onerror = (e: any) => {
           console.error("Speech recognition error:", e.error)
-          
-          // If the Wi-Fi blocks the mic, we inject a fake question so the demo doesn't crash!
           if (e.error === 'network' || e.error === 'not-allowed') {
             console.log("⚠️ Network blocked speech. Injecting fallback transcript...");
             setVoiceTranscript("Do I need to water my crops today?");
@@ -401,16 +393,19 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
       ;(async () => {
         try {
-          const detectedLang = detectLanguage(transcript);
-          detectedLangRef.current = detectedLang
+          const backendLangName = voiceInputLang === "zh-CN" ? "Chinese" : 
+                                  voiceInputLang === "ms-MY" ? "Bahasa Melayu" : "English";
+          
+          detectedLangRef.current = backendLangName;
+          
           const reply = await requestAssistantResponse({
             transcript,
-            language: detectedLang,
+            language: backendLangName,
           }, "voice")
 
           setVoiceResponse(reply)
           setVoiceState("ai-speaking")
-          playAudio(reply, detectedLang)
+          playAudio(reply, backendLangName)
         } catch (error) {
           console.error("Voice request failed:", error)
           const fallback = "I couldn't reach the farm assistant just now. Please try again in a moment."
@@ -435,10 +430,8 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   // ================= 3. CHAT LOGIC =================
   const detectLanguage = (text: string) => {
-    // 1. If it has Chinese characters, it's Chinese
     if (/[\u4e00-\u9fa5]/.test(text)) return "Chinese";
     
-    // 2. If it has common Malay words, it's Bahasa Melayu
     const malayWords = [
       "apa", "kenapa", "macam", "bila", "siram", "baja", "tanah", "pokok",
       "cuaca", "hari", "ini", "masalah", "saya", "awak", "boleh", "tidak",
@@ -450,7 +443,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     const lowerText = text.toLowerCase();
     if (malayWords.some(word => lowerText.includes(word))) return "Bahasa Melayu";
     
-    // 3. Otherwise, default to English
     return "English";
   };
 
@@ -471,87 +463,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
     }, 1000) 
   }
 
-  const getAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
-    try {
-      const response = await fetch("https://farm-agents-586729303053.asia-southeast1.run.app/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, language: lang }),
-      });
-
-      if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-      
-      const data = await response.json();
-      return data.result;
-
-    } catch (error) {
-      console.log("Backend unavailable, using 5-Tier Multilingual Fallback...");
-      const lowerInput = input.toLowerCase();
-
-      // --- 1. ENGLISH FALLBACKS ---
-      if (lang === "English") {
-        if (lowerInput.includes("water") || lowerInput.includes("irrigation") || lowerInput.includes("moisture")) {
-          return "Based on the latest readings from your soil sensors, Field B's moisture level has dropped to 42 percent. I highly recommend scheduling a 45-minute irrigation cycle tomorrow morning at 7 AM.";
-        }
-        if (lowerInput.includes("disease") || lowerInput.includes("pest") || lowerInput.includes("rust") || lowerInput.includes("bug")) {
-          return "I am detecting early-stage aphid activity on the lower leaves in the north quadrant. Applying a Neem Oil spray within the next 48 hours should effectively neutralize them.";
-        }
-        if (lowerInput.includes("weather") || lowerInput.includes("forecast") || lowerInput.includes("rain") || lowerInput.includes("sun")) {
-          return "We are expecting partly cloudy conditions over the next 5 days with temperatures between 28 and 32 degrees. There is a 75 percent chance of rain on Friday afternoon.";
-        }
-        if (lowerInput.includes("fertilizer") || lowerInput.includes("nutrient") || lowerInput.includes("yellow") || lowerInput.includes("soil")) {
-          return "If your plant leaves are looking yellowish, it indicates a nitrogen deficiency. I suggest applying Nitro Max 20-20-20 fertilizer during your next watering cycle.";
-        }
-        if (lowerInput.includes("harvest") || lowerInput.includes("yield") || lowerInput.includes("price") || lowerInput.includes("sell")) {
-          return "Your crops are tracking beautifully for harvest by mid-May. Market trends show prices are rising to 4 Ringgit and 50 sen per kilo. You are in a great position.";
-        }
-        return "I am Tani Agent. You can ask me about weather forecasts, irrigation schedules, pest control, or market prices. How can I help you today?";
-      }
-
-      // --- 2. BAHASA MELAYU FALLBACKS ---
-      if (lang === "Bahasa Melayu") {
-        if (lowerInput.includes("air") || lowerInput.includes("siram") || lowerInput.includes("kelembapan")) {
-          return "Berdasarkan bacaan penderia, tahap kelembapan di Petak B telah menurun kepada 42 peratus. Saya mengesyorkan kitaran pengairan selama 45 minit esok pagi pada pukul 7.";
-        }
-        if (lowerInput.includes("penyakit") || lowerInput.includes("ulat") || lowerInput.includes("serangga")) {
-          return "Saya mengesan tanda-tanda awal serangan kutu daun di kuadran utara. Penggunaan semburan Minyak Semambu dalam masa 48 jam akan dapat mengawal penyebarannya.";
-        }
-        if (lowerInput.includes("cuaca") || lowerInput.includes("hujan") || lowerInput.includes("panas")) {
-          return "Kita menjangkakan keadaan separa berawan untuk 5 hari akan datang. Terdapat kebarangkalian 75 peratus hujan akan turun pada petang Jumaat.";
-        }
-        if (lowerInput.includes("baja") || lowerInput.includes("kuning") || lowerInput.includes("tanah") || lowerInput.includes("nutrien")) {
-          return "Daun kekuningan menunjukkan kekurangan nitrogen. Saya cadangkan penggunaan baja Nitro Max 20-20-20 semasa kitaran siraman anda yang seterusnya.";
-        }
-        if (lowerInput.includes("tuai") || lowerInput.includes("hasil") || lowerInput.includes("harga") || lowerInput.includes("jual")) {
-          return "Tanaman anda dijangka sedia untuk dituai menjelang pertengahan Mei. Harga pasaran terkini sedang meningkat kepada 4 Ringgit 50 sen sekilo.";
-        }
-        return "Saya ialah Ejen Tani. Anda boleh bertanya tentang cuaca, jadual siraman, kawalan perosak, atau harga pasaran. Bagaimana saya boleh bantu anda?";
-      }
-
-      // --- 3. CHINESE FALLBACKS ---
-      if (lang === "中文" || lang === "Chinese") {
-        if (lowerInput.includes("水") || lowerInput.includes("灌溉") || lowerInput.includes("湿度")) {
-          return "根据传感器数据，B区的土壤湿度已降至百分之 42。我强烈建议您在明早 7 点进行 45 分钟的灌溉。";
-        }
-        if (lowerInput.includes("病") || lowerInput.includes("虫") || lowerInput.includes("枯")) {
-          return "我发现在农场北部有早期的蚜虫活动迹象。在接下来的 48 小时内喷洒印楝油将有效控制虫害蔓延。";
-        }
-        if (lowerInput.includes("天气") || lowerInput.includes("雨") || lowerInput.includes("温")) {
-          return "未来 5 天将以多云为主，气温在 28 到 32 度之间。周五下午有百分之 75 的概率出现降雨。";
-        }
-        if (lowerInput.includes("肥") || lowerInput.includes("黄") || lowerInput.includes("土") || lowerInput.includes("营养")) {
-          return "如果植物叶片发黄，表明缺乏氮元素。我建议您在下次浇水时施用 20-20-20 的氮磷钾平衡肥。";
-        }
-        if (lowerInput.includes("收") || lowerInput.includes("产量") || lowerInput.includes("价格") || lowerInput.includes("卖")) {
-          return "您的作物长势良好，预计将在五月中旬收获。目前市场价格正在上涨至每公斤 4 令吉 50 仙。您今年的收成会很好。";
-        }
-        return "我是您的 Tani 农业智能助手。您可以向我询问天气预报、灌溉计划、病虫害防治或市场价格。请问今天需要什么帮助？";
-      }
-
-      return "I'm processing a high volume of farm data right now. Please try your request again in a moment!";
-    }
-  }
-
   const getLinkedAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
     try {
       return await requestAssistantResponse({
@@ -559,19 +470,90 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         language: lang,
       }, "chat")
     } catch (error) {
-      console.log("Backend unavailable, using 5-Tier Multilingual Fallback...")
+      console.log("Backend unavailable, using Fallback...")
       return getFallbackAIResponse(input, lang)
     }
   }
-  
-  const formatChatMessage = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index} className="font-bold text-gray-900 text-[15px]">{part.slice(2, -2)}</strong>;
+
+  // ================= 4. TRANSLATION LOGIC =================
+  // Safely positioned AFTER getLinkedAIResponse so it works perfectly
+  // ================= 4. INSTANT NON-AI TRANSLATION =================
+  const handleTranslateResult = (targetLang: string) => {
+    setIsTranslating(true);
+    
+    // Fake a tiny 0.5s loading delay so it "feels" like it's processing
+    setTimeout(() => {
+      // 1. Check if the current result is the "Early Blight" scan
+      if (scanResult.includes("Early Blight") || scanResult.includes("Hawar Awal") || scanResult.includes("早疫病")) {
+        if (targetLang === "English") {
+          setScanResult("🚨 Disease Detected: Early Blight (Hawar Awal).\n\nSeverity: Moderate.\n\nAnalysis: The leaf shows characteristic concentric dark rings with yellow halos. \n\nRecommendation: Please purchase 'Fungicide Pro' from the Eco-Store and apply within 48 hours to prevent spreading.");
+        } else if (targetLang === "Bahasa Melayu") {
+          setScanResult("🚨 Penyakit Dikesan: Hawar Awal\n\nTahap: Sederhana\n\nAnalisis: Daun menunjukkan tompok gelap dengan cecincin kuning.\n\nCadangan: Gunakan 'Fungicide Pro' dalam masa 48 jam.");
+        } else {
+          setScanResult("🚨 检测到疾病：早疫病\n\n严重程度：中等\n\n分析：叶片显示出带有黄色光晕的暗色同心圆斑。\n\n建议：请在 48 小时内使用 'Fungicide Pro'。");
+        }
+      } 
+      // 2. Check if the current result is the "Nitrogen Deficiency" scan
+      else if (scanResult.includes("Nitrogen") || scanResult.includes("Kekurangan") || scanResult.includes("缺乏")) {
+         if (targetLang === "English") {
+          setScanResult("⚠️ Condition: Nitrogen Deficiency.\n\nSeverity: Mild.\n\nAnalysis: The uploaded image shows pale, yellowish leaves starting from the older foliage, indicating poor nutrient uptake.\n\nRecommendation: Apply 'NitroMax 20-20-20' fertilizer to restore nutrient balance.");
+        } else if (targetLang === "Bahasa Melayu") {
+          setScanResult("⚠️ Keadaan: Kekurangan Nitrogen.\n\nTahap: Ringan.\n\nAnalisis: Imej yang dimuat naik menunjukkan daun pucat kekuningan bermula dari daun yang lebih tua, menunjukkan penyerapan nutrien yang lemah.\n\nCadangan: Gunakan baja 'NitroMax 20-20-20' untuk memulihkan keseimbangan nutrien.");
+        } else {
+          setScanResult("⚠️ 状况：缺乏氮元素。\n\n严重程度：轻度。\n\n分析：上传的图像显示较老的叶片开始变苍白发黄，表明营养吸收不良。\n\n建议：施用 'NitroMax 20-20-20' 肥料以恢复营养平衡。");
+        }
       }
-      return <span key={index}>{part}</span>;
-    });
+      
+      setIsTranslating(false);
+    }, 500); // 500ms delay for visual effect
+  }
+  
+  // Renders AI markdown
+  const formatChatMessage = (text: string) => {
+    const paragraphs = text.split(/\n\n+/);
+    return (
+      <div className="space-y-2">
+        {paragraphs.map((para, pIdx) => {
+          const lines = para.split(/\n/);
+          return (
+            <div key={pIdx} className={lines.length > 1 ? "space-y-1" : ""}>
+              {lines.map((line, lIdx) => {
+                if (line.trim().startsWith('### ')) {
+                  return (
+                    <h3 key={lIdx} className="text-lg font-extrabold text-[#2a5d44] mt-4 mb-2 border-b border-gray-100 pb-1">
+                      {line.replace('### ', '')}
+                    </h3>
+                  );
+                }
+                if (line.trim().startsWith('## ')) {
+                  return (
+                    <h4 key={lIdx} className="text-[16px] font-bold text-gray-800 mt-3 mb-1">
+                      {line.replace('## ', '')}
+                    </h4>
+                  );
+                }
+                const renderInline = (str: string) => {
+                  const parts = str.split(/(\*\*.*?\*\*)/g);
+                  return parts.map((part, i) =>
+                    part.startsWith('**') && part.endsWith('**')
+                      ? <strong key={i} className="font-semibold text-gray-900">{part.slice(2, -2)}</strong>
+                      : <span key={i}>{part}</span>
+                  );
+                };
+                const isEmojiLine = /^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]/u.test(line.trim());
+                return (
+                  <div key={lIdx} className={isEmojiLine ? "flex gap-1.5 items-start" : ""}>
+                    <span className="text-sm leading-relaxed">
+                      {renderInline(line)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   if (!isOpen) return null
@@ -614,16 +596,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         {/* ================= SCAN TAB ================= */}
         {activeTab === "scan" && (
           <div className="h-full flex flex-col px-5">
-            
-            {/* Gallery Input (Hidden) */}
-            <input 
-              type="file" 
-              accept="image/*" 
-              ref={galleryInputRef} 
-              onChange={handleGalleryUpload} 
-              className="hidden" 
-            />
-            {/* Hidden Canvas to capture video frame */}
+            <input type="file" accept="image/*" ref={galleryInputRef} onChange={handleGalleryUpload} className="hidden" />
             <canvas ref={canvasRef} className="hidden" />
 
             {/* 1. IDLE STATE */}
@@ -650,13 +623,9 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
                     <CheckCircle2 className="w-4 h-4 text-[#4caf50]" />
                     <span>Upload a leaf image to diagnose plant diseases</span>
                   </div>
-                  
-                  {/* Triggers Live Camera */}
                   <button onClick={startCamera} className="w-full py-4 bg-[#3d6b3d] hover:bg-[#2f542f] text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
                     <Camera className="w-5 h-5" /> OPEN LIVE CAMERA
                   </button>
-                  
-                  {/* Triggers File Explorer */}
                   <button onClick={() => galleryInputRef.current?.click()} className="w-full py-4 bg-white border-2 border-gray-200 hover:border-[#4caf50] text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
                     <ImageIcon className="w-5 h-5" /> Upload from Gallery
                   </button>
@@ -664,18 +633,11 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
               </>
             )}
 
-            {/* 2. CAMERA ACTIVE STATE (LIVE FEED) */}
+            {/* 2. CAMERA ACTIVE STATE */}
             {scanState === "camera-active" && (
               <div className="h-full flex flex-col pb-8">
                 <div className="flex-1 bg-black rounded-3xl overflow-hidden relative shadow-inner mb-6 flex flex-col items-center justify-center border-4 border-gray-100">
-                  <video 
-                    ref={videoRef} 
-                    autoPlay 
-                    playsInline 
-                    muted 
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Visual Overlay for Camera */}
+                  <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 z-10 pointer-events-none">
                      <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-4 py-2 rounded-full backdrop-blur-sm font-bold tracking-wider">
                        Align leaf inside frame
@@ -683,16 +645,14 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
                      <div className="absolute inset-x-8 top-20 bottom-20 border-2 border-white/60 border-dashed rounded-3xl" />
                   </div>
                 </div>
-
                 <div className="flex items-center justify-center gap-8">
                   <button onClick={() => { stopCamera(); setScanState("idle"); }} className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300">
                     <X className="w-6 h-6 text-gray-600" />
                   </button>
-                  {/* The Capture Button */}
                   <button onClick={capturePhoto} className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-[6px] border-[#e8f5e9] active:scale-90 transition-all group">
                     <div className="w-14 h-14 bg-[#4caf50] rounded-full group-hover:bg-[#43a047] transition-colors" />
                   </button>
-                  <div className="w-12 h-12" /> {/* Spacer */}
+                  <div className="w-12 h-12" />
                 </div>
               </div>
             )}
@@ -706,7 +666,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
                     <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#4caf50] rounded-tr-lg z-10" />
                     <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#4caf50] rounded-bl-lg z-10" />
                     <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#4caf50] rounded-br-lg z-10" />
-                    
                     <div className="absolute inset-4 overflow-hidden rounded-lg bg-gray-100">
                       {uploadedImage && <img src={uploadedImage} alt="Scanning" className="w-full h-full object-cover opacity-60" />}
                       <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#4caf50] to-transparent animate-scan" />
@@ -725,35 +684,45 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
             {scanState === "result" && (
               <div className="flex-1 flex flex-col pb-6">
                 <div className="flex-1 flex items-center justify-center px-5 pt-4 pb-2">
-                  
-                  {/*  */}
                   <div className="bg-white rounded-3xl p-1 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 w-full max-w-sm flex flex-col max-h-[60vh]">                    
-                    {/*  */}
-                    <div className="relative w-full h-44 shrink-0 rounded-[22px] overflow-hidden bg-gray-100">                      {uploadedImage ? (
+                    <div className="relative w-full h-44 shrink-0 rounded-[22px] overflow-hidden bg-gray-100">                      
+                      {uploadedImage ? (
                         <img src={uploadedImage} alt="Scanned Crop" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"><Leaf className="w-10 h-10 text-gray-300" /></div>
                       )}
-                      
-                      {/* Analysis Complete Badge */}
                       <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-[#4caf50] flex items-center gap-1.5 shadow-sm">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Analysis Complete
                       </div>
                     </div>
                     
-                    {/* center content */}
+                    {/* TRANSLATION UI IN RESULT AREA */}
                     <div className="p-5 flex-1 overflow-y-auto">
                       <div className="bg-[#f8faf8] rounded-2xl p-4 border border-[#e8f5e9]">
-                        <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap text-left font-medium">
-                          {scanResult}
-                        </p>
+                        {isTranslating ? (
+                          <div className="flex flex-col items-center justify-center py-6 gap-3">
+                            <Loader2 className="w-8 h-8 text-[#4caf50] animate-spin" />
+                            <p className="text-sm font-medium text-gray-500">Translating...</p>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-800 leading-relaxed text-left font-medium">
+                            {formatChatMessage(scanResult)}
+                          </div>
+                        )}
                       </div>
-                    </div>
 
+                      {!isTranslating && (
+                        <div className="flex items-center justify-start gap-2 mt-3 pl-1">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Translate:</span>
+                          <button onClick={() => handleTranslateResult("English")} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors">EN</button>
+                          <button onClick={() => handleTranslateResult("Bahasa Melayu")} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors">BM</button>
+                          <button onClick={() => handleTranslateResult("Chinese")} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-colors">中文</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* bottom buttons */}
                 <div className="px-5 mt-2 space-y-3">
                   <button onClick={() => window.location.href = '/store'} className="w-full py-4 bg-[#4caf50] hover:bg-[#43a047] text-white font-bold rounded-2xl transition-transform active:scale-[0.98] shadow-md flex items-center justify-center gap-2">
                      Get Proactive Treatment
@@ -771,7 +740,6 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
         {activeTab === "voice" && (
           <div className="h-full flex flex-col bg-gray-50">
             <div className="flex-1 px-5 pt-4 pb-20 overflow-y-auto flex flex-col justify-end gap-6">
-              
               {(voiceState === "idle" || voiceState === "recording" || voiceState === "processing") && !voiceTranscript && (
                  <div className="text-center mb-auto mt-10">
                    <div className="w-20 h-20 mx-auto mb-4 bg-[#4caf50]/10 rounded-full flex items-center justify-center shadow-inner border border-[#4caf50]/20">
@@ -793,21 +761,19 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
               {voiceState === "ai-speaking" && (
                 <div className="flex justify-start w-full animate-in fade-in slide-in-from-left-4">
-                  {/* 👇 ADDED max-h-[50vh] overflow-y-auto HERE 👇 */}
                   <div className="max-w-[90%] max-h-[50vh] overflow-y-auto bg-gradient-to-br from-[#4caf50]/10 to-[#4caf50]/5 rounded-3xl rounded-bl-sm p-5 border border-[#4caf50]/20 shadow-sm relative">
                     <div className="absolute -top-3 -left-2 bg-white rounded-full p-1 shadow-sm border border-gray-100">
                       <Volume2 className="w-4 h-4 text-[#4caf50] animate-pulse" />
                     </div>
-                    <p className="text-gray-800 text-lg leading-relaxed font-medium">{voiceResponse}</p>
+                    <div className="text-gray-800 text-base leading-relaxed">{formatChatMessage(voiceResponse)}</div>
                   </div>
                 </div>
               )}
 
                {voiceState === "result" && voiceResponse && (
                 <div className="flex justify-start w-full">
-                  {/* 👇 ADDED max-h-[50vh] overflow-y-auto HERE 👇 */}
                   <div className="max-w-[90%] max-h-[50vh] overflow-y-auto bg-white rounded-3xl rounded-bl-sm p-5 border border-gray-100 shadow-sm">
-                    <p className="text-gray-700 leading-relaxed font-medium">{voiceResponse}</p>
+                    <div className="text-gray-700 leading-relaxed">{formatChatMessage(voiceResponse)}</div>
                     <button 
                       onClick={handleReplayVoice}
                       className="mt-4 flex items-center gap-1.5 text-sm text-[#4caf50] font-bold hover:text-[#43a047] transition-colors bg-[#4caf50]/10 px-4 py-2 rounded-full w-fit active:scale-95"
@@ -820,6 +786,13 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
             </div>
 
             <div className="pb-10 pt-4 px-5 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent flex flex-col items-center">
+              {(voiceState === "idle" || voiceState === "result") && (
+                <div className="flex gap-2 mb-6 bg-gray-200/60 p-1.5 rounded-full shadow-inner border border-gray-200">
+                  <button onClick={() => setVoiceInputLang("en-MY")} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${voiceInputLang === "en-MY" ? "bg-white text-[#4caf50] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>English</button>
+                  <button onClick={() => setVoiceInputLang("ms-MY")} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${voiceInputLang === "ms-MY" ? "bg-white text-[#4caf50] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Melayu</button>
+                  <button onClick={() => setVoiceInputLang("zh-CN")} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${voiceInputLang === "zh-CN" ? "bg-white text-[#4caf50] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>中文</button>
+                </div>
+              )}
               <div className="h-8 mb-4 flex items-center justify-center">
                 {voiceState === "recording" && <span className="text-red-500 font-medium animate-pulse">Listening... {formatTime(recordingTime)}</span>}
                 {voiceState === "processing" && <span className="text-gray-500 font-medium flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</span>}
@@ -882,7 +855,7 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${message.sender === "user" ? "bg-[#4caf50] text-white rounded-br-md" : "bg-white border border-gray-100 text-gray-700 rounded-bl-md"}`}>
-                        <div className="text-sm leading-relaxed whitespace-pre-wrap">{formatChatMessage(message.text)}</div>
+                        <div className="text-sm leading-relaxed">{formatChatMessage(message.text)}</div>
                       </div>
                     </div>
                   ))}
