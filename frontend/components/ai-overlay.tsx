@@ -39,7 +39,7 @@ type AssistantMode = "chat" | "voice"
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "http://localhost:8080"
+  "https://farm-agents-586729303053.asia-southeast1.run.app"
 
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
@@ -341,6 +341,12 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition()
+        // For Bahasa Melayu:
+        recognition.lang = 'ms-MY'; 
+        // OR For Mandarin (Chinese):
+        recognition.lang = 'zh-CN'; 
+        // OR For Malaysian English:
+        recognition.lang = 'en-MY';
         recognition.continuous = true
         recognition.interimResults = true
         recognition.onresult = (event: any) => {
@@ -453,7 +459,17 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
   const getAIResponse = async (input: string, lang: string = "English"): Promise<string> => {
     try {
-      return await requestAssistantResponse({ message: input, language: lang }, "chat")
+      const response = await fetch("https://tani-backend-215077089845.asia-southeast1.run.app/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, language: lang }),
+      });
+
+      if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+      
+      const data = await response.json();
+      return data.result;
+
     } catch (error) {
       console.log("Backend unavailable, using 5-Tier Multilingual Fallback...");
       const lowerInput = input.toLowerCase();
