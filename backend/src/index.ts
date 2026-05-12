@@ -197,17 +197,29 @@ export const multilingualChatFlow = ai.defineFlow({
     name: 'multilingualChatFlow',
     inputSchema: z.object({
         message: z.string(),
-        language: z.string(), // e.g., "Bahasa Malaysia", "Mandarin", "Tamil"
+        // 🚨 STRICT VALIDATION: Only allows these 4 exact languages
+        language: z.enum(["English", "Bahasa Melayu", "Tamil", "Chinese"]).default("Bahasa Melayu"),
+        previousDiagnosis: z.string().optional(), 
+        currentWeather: z.string().optional(),    
     }),
     outputSchema: z.string(),
 }, async (input) => {
+    
+    // Build the dynamic context string
+    let context = "";
+    if (input.previousDiagnosis) context += `\n- The farmer's crop currently has: ${input.previousDiagnosis}`;
+    if (input.currentWeather) context += `\n- The current weather is: ${input.currentWeather}`;
+
     const prompt = `You are a helpful AI farming assistant in Malaysia. 
     A farmer asks: "${input.message}". 
-    Respond directly to their question using practical farming advice. 
-    You MUST reply entirely in ${input.language}. Provide a highly detailed and comprehensive answer. Include practical farming advice, specific actionable steps, and market insights if they ask about selling. 
+    
+    CONTEXT ABOUT THE FARMER: ${context ? context : "No specific context provided."}
+    
+    Respond directly to their question using practical farming advice. If context is provided (like weather or disease), you MUST factor that into your advice.
+    
     CRITICAL RULES:
     1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
-    2. LENGTH LIMIT: Keep your answers EXTREMELY short and punchy. Maximum 3 brief paragraphs. Get straight to the solution.
+    2. LENGTH LIMIT: Keep your answers EXTREMELY short and punchy. Maximum 3 brief paragraphs.
     3. LANGUAGE: You MUST reply entirely in ${input.language}.
     4. FORMATTING (STRICT): 
        - DO NOT use single asterisks (*) or hyphens (-) for lists or italics. They will break the UI.
