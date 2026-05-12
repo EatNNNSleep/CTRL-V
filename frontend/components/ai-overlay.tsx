@@ -60,7 +60,8 @@ async function requestAssistantResponse(
   const response = await fetch(mode === "voice" ? VOICE_API_URL : CHAT_API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
+      "Accept": "application/json; charset=utf-8"
     },
     body: JSON.stringify(payload),
 
