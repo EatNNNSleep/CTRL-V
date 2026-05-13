@@ -103,9 +103,9 @@ export const diseaseDetectionFlow = ai.defineFlow(
     ${availableProducts}
     
     IMPORTANT OUTPUT FORMAT:
-    Do NOT return a JSON object. You must return a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
+    You must output a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
     
-    Use EXACTLY this format:
+    Write your response using EXACTLY this template:
     
     🚨 Diagnosis: [Exact name of the disease/issue]
     ⚠️ Severity: [Low / Medium / High]
