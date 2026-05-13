@@ -197,11 +197,9 @@ export const multilingualChatFlow = ai.defineFlow({
     name: 'multilingualChatFlow',
     inputSchema: z.object({
         message: z.string(),
-        // 🚨 STRICT VALIDATION: Only allows these 4 exact languages
-        language: z.enum(["English", "Bahasa Melayu", "Tamil", "Chinese"]).default("Bahasa Melayu"),
-        previousDiagnosis: z.string().optional(), 
-        currentWeather: z.string().optional(),    
+        language: z.string(),   
     }),
+
     outputSchema: z.string(),
 }, async (input) => {
     
@@ -212,10 +210,8 @@ export const multilingualChatFlow = ai.defineFlow({
 
     const prompt = `You are a helpful AI farming assistant in Malaysia. 
     A farmer asks: "${input.message}". 
-    
-    CONTEXT ABOUT THE FARMER: ${context ? context : "No specific context provided."}
-    
-    Respond directly to their question using practical farming advice. If context is provided (like weather or disease), you MUST factor that into your advice.
+    Respond directly to their question using practical farming advice. 
+    You MUST reply entirely in ${input.language}. Provide a highly detailed and comprehensive answer. Include practical farming advice, specific actionable steps, and market insights if they ask about selling. 
     
     CRITICAL RULES:
     1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
