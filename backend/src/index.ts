@@ -197,9 +197,11 @@ export const multilingualChatFlow = ai.defineFlow({
     name: 'multilingualChatFlow',
     inputSchema: z.object({
         message: z.string(),
-        language: z.string(),   
+        language: z.enum(["English", "Bahasa Melayu", "Tamil", "Chinese"]).default("Bahasa Melayu"),
+        
+        previousDiagnosis: z.string().optional(), 
+        currentWeather: z.string().optional(),    
     }),
-
     outputSchema: z.string(),
 }, async (input) => {
     
@@ -212,7 +214,7 @@ export const multilingualChatFlow = ai.defineFlow({
     A farmer asks: "${input.message}". 
     Respond directly to their question using practical farming advice. 
     You MUST reply entirely in ${input.language}. Provide a highly detailed and comprehensive answer. Include practical farming advice, specific actionable steps, and market insights if they ask about selling. 
-    
+
     CRITICAL RULES:
     1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
     2. LENGTH LIMIT: Keep your answers EXTREMELY short and punchy. Maximum 3 brief paragraphs.
