@@ -115,9 +115,9 @@ export default function StorePage() {
   const [deliveryInfo, setDeliveryInfo] = useState({
     name: "Pak Ali",
     phone: "+60 12-345 6789",
-    street: "Batu 43, Kea Farm",
-    postcode: "39100",
-    city: "Cameron Highlands, Pahang"
+    street: "10266 , S12 , Jalan Tali Air 4, Lorong Ban 2, Sawah Padi A",
+    postcode: "45400",
+    city: " Sekinchan, Selangor"
       })
 
   // Temporary form state for editing

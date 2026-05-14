@@ -87,7 +87,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Content Section */}
-      <div className="flex flex-col items-center px-6 sm:px-8 pb-8 sm:pb-12">
+      <div className="flex flex-col items-center px-6 sm:px-8 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(3rem+env(safe-area-inset-bottom,0px))]">
         {/* Text Content */}
         <div className="flex flex-col items-center text-center mb-6" key={currentSlide}>
           <h1

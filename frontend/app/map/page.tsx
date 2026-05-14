@@ -28,10 +28,8 @@ export default function MapDashboard() {
   const handleSyncLocation = () => {
     setIsLocating(true);
     
-    setTimeout(() => {
-      // Snap perfectly back to the Cameron Highlands farm
-      setLocation([4.5035, 101.4095]); 
-      setAddress("Terrace Plot 7, Kea Farm Zone, Cameron Highlands");
+      setTimeout(() => {setLocation([3.5126, 101.1126]); 
+      setAddress("Sawah Padi A, Sekinchan, Selangor");
       setIsLocating(false);
     }, 1200);
   };

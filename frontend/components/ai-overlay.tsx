@@ -39,8 +39,7 @@ type AssistantMode = "chat" | "voice"
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "http://localhost:8000"
-
+  "https://farm-agents-586729303053.asia-southeast1.run.app"
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
   `${API_BASE_URL}/api/chat`
@@ -145,6 +144,68 @@ async function fileToBase64(file: File) {
     reader.onerror = () => reject(reader.error)
     reader.readAsDataURL(file)
   })
+}
+
+function normalizeDiseaseResult(rawResult: unknown) {
+  let parsed = rawResult
+
+  if (typeof rawResult === "string") {
+    const cleaned = rawResult
+      .replace(/```(?:json)?/gi, "")
+      .replace(/```/g, "")
+      .trim()
+    const startIndex = cleaned.indexOf("{")
+    const endIndex = cleaned.lastIndexOf("}")
+
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      try {
+        parsed = JSON.parse(cleaned.substring(startIndex, endIndex + 1))
+      } catch {
+        return cleaned
+      }
+    } else {
+      return cleaned
+    }
+  }
+
+  if (typeof parsed !== "object" || parsed === null) {
+    return String(parsed ?? "")
+  }
+
+  const resultObject = parsed as Record<string, any>
+  const dataObj = resultObject.result || resultObject.response || resultObject
+  const disease =
+    dataObj.disease_name ||
+    dataObj.disease ||
+    dataObj.condition ||
+    dataObj.name ||
+    dataObj.penyakit ||
+    dataObj.nama_penyakit ||
+    "Unknown"
+  const severity = dataObj.severity || dataObj.tahap || dataObj.keterukan || "Not specified"
+  const analysis =
+    dataObj.analysis ||
+    dataObj.description ||
+    dataObj.analisis ||
+    dataObj.keterangan ||
+    "Visual symptoms detected."
+  const recommendation =
+    dataObj.recommended_product ||
+    dataObj.recommendation ||
+    dataObj.treatment ||
+    dataObj.cadangan_rawatan ||
+    dataObj.rawatan ||
+    "treatment"
+  const action = dataObj.system_action || dataObj.tindakan_sistem
+
+  return `Diagnosis: ${disease}
+Severity: ${severity}
+
+Analysis:
+${analysis}
+
+Proactive Defense:
+${recommendation}${action ? `\n\nSystem Action:\n${action}` : ""}`
 }
 
 export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayProps) {
@@ -292,24 +353,34 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
 
       const data = (await response.json()) as BackendChatResponse
       let result: any = data.result || data.response || data.message || "No response received from the AI backend."
+      result = normalizeDiseaseResult(result)
 
       // Attempt to parse JSON if the AI returned a JSON string or object
       try {
         let parsed = result
         if (typeof result === "string") {
           // Extract only the JSON object, ignoring any conversational text outside of it
-          const startIndex = result.indexOf("{")
-          const endIndex = result.lastIndexOf("}")
+          const cleanedResult = result
+            .replace(/```(?:json)?/gi, "")
+            .replace(/```/g, "")
+            .trim()
+          const startIndex = cleanedResult.indexOf("{")
+          const endIndex = cleanedResult.lastIndexOf("}")
           if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-            const jsonString = result.substring(startIndex, endIndex + 1)
+            const jsonString = cleanedResult.substring(startIndex, endIndex + 1)
             parsed = JSON.parse(jsonString)
+          } else {
+            result = cleanedResult
           }
         }
         
         if (typeof parsed === "object" && parsed !== null) {
-          const dataObj = (parsed.disease || parsed.condition || parsed.name || parsed.analysis) ? parsed : (parsed.result || parsed.response || parsed)
+          const dataObj = (parsed.disease || parsed.condition || parsed.name || parsed.analysis || parsed.penyakit || parsed.cadangan_rawatan || parsed.tindakan_sistem) ? parsed : (parsed.result || parsed.response || parsed)
           
-          if (dataObj.disease || dataObj.disease_name || dataObj.condition || dataObj.name || dataObj.analysis || dataObj.recommendation) {
+          if (dataObj.disease || dataObj.disease_name || dataObj.condition || dataObj.name || dataObj.analysis || dataObj.recommendation || dataObj.penyakit || dataObj.cadangan_rawatan || dataObj.tindakan_sistem) {
+            if (dataObj.penyakit && !dataObj.disease) dataObj.disease = dataObj.penyakit
+            if (dataObj.analisis && !dataObj.analysis) dataObj.analysis = dataObj.analisis
+            if (dataObj.cadangan_rawatan && !dataObj.recommendation) dataObj.recommendation = dataObj.cadangan_rawatan
             result = `🚨 Diagnosis: ${dataObj.disease_name || dataObj.disease || dataObj.condition || dataObj.name || "Unknown"}
           ⚠️ Severity: ${dataObj.severity || "Not specified"}
 

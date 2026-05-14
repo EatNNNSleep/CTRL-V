@@ -33,7 +33,9 @@ import {
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
 
-const API_BASE_URL = "http://localhost:8000"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "https://farm-agents-586729303053.asia-southeast1.run.app"
 
 
 

@@ -10,8 +10,9 @@ export function BottomNavigation() {
   const [isExpanded, setIsExpanded] = useState(false);
   const pathname = usePathname();
   const { setAIOverlayTab, setIsAIOverlayOpen } = useUI();
+  const normalizedPathname = pathname.replace(/\/+$/, "") || "/";
 
-    if (pathname === "/onboarding" || pathname === "/login") {
+  if (normalizedPathname === "/onboarding" || normalizedPathname === "/login") {
     return null;
   }
 
