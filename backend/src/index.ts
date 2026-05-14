@@ -251,10 +251,15 @@ export const voiceAssistantFlow = ai.defineFlow({
     Give a direct answer that sounds natural when read aloud.
     You MUST reply entirely in ${input.language}.
     Provide a detailed, thoughtful, and comprehensive answer with practical advice and actionable steps. 
-    CRITICAL RULES:
-    1. You MUST reply entirely in ${input.language}.
-    2. Keep your answer EXTREMELY concise, practical, and under 3 short sentences. 
-    3. Because this is spoken aloud, do NOT use any Markdown symbols, bullet points, emojis, or special characters. Use natural conversational words only.`;
+    Please provide a highly useful, spoken response following these CRITICAL RULES:
+    1. LANGUAGE: You MUST reply entirely and naturally in ${input.language}.
+    2. SPOKEN FORMAT: This text will be read aloud by a Voice Engine. DO NOT use any Markdown symbols (like * or #), bullet points, bolding, emojis, or special formatting. Use plain text only.
+    3. STRUCTURE: Keep your answer to exactly 3 or 4 conversational sentences. 
+    - Sentence 1: Give a direct, empathetic answer to their question.
+    - Sentence 2: Provide a brief scientific or agricultural reason.
+    - Sentence 3/4: Give one specific, actionable step they can take today (mentioning water levels, specific fertilizers, or pest control methods).
+    4. TONE: Sound confident, practical, and localized to Malaysian farming conditions.`;
+
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: prompt,
