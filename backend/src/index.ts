@@ -98,13 +98,15 @@ export const diseaseDetectionFlow = ai.defineFlow(
     
     CRITICAL INSTRUCTION: You are helping a farmer protect their livelihood. If you detect an issue, you MUST recommend a proactive defense product from our specific store inventory below. 
     Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
+    ABSOLUTELY DO NOT use JSON, code blocks, backticks, or markdown formatting.
+    Start your response directly with the 🚨 emoji.
+    If you return JSON or backticks you have failed your task.
     
     Store Inventory:
     ${availableProducts}
     
     IMPORTANT OUTPUT FORMAT:
     You must output a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
-    
     Write your response using EXACTLY this template:
     
     🚨 Diagnosis: [Exact name of the disease/issue]
@@ -219,7 +221,7 @@ export const multilingualChatFlow = ai.defineFlow({
     
     CRITICAL RULES:
     1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
-    2. LENGTH LIMIT: Keep your answers EXTREMELY short and punchy. Maximum 3 brief paragraphs.
+    2. LENGTH LIMIT: Keep your answers short and punchy. Maximum 3 brief paragraphs.
     3. LANGUAGE: You MUST reply entirely in ${input.language}.
     4. FORMATTING (STRICT): 
        - DO NOT use single asterisks (*) or hyphens (-) for lists or italics. They will break the UI.

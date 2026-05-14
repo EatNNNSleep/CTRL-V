@@ -25,7 +25,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [location, setLocation] = useState<[number, number]>([4.5035, 101.4095]);
-  const [address, setAddress] = useState("Kea Farm, Cameron Highlands, Pahang");
+  const [address, setAddress] = useState("Sekinchan, Selangor");
   const [isAIOverlayOpen, setIsAIOverlayOpen] = useState(false);
   const [aiOverlayTab, setAIOverlayTab] = useState<"scan" | "voice" | "chat">("scan");
 

@@ -39,7 +39,7 @@ type AssistantMode = "chat" | "voice"
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_BACKEND_URL ??
-  "https://farm-agents-586729303053.asia-southeast1.run.app"
+  "http://localhost:8000"
 
 const CHAT_API_URL =
   process.env.NEXT_PUBLIC_AI_CHAT_URL ??
@@ -291,10 +291,43 @@ export function AIOverlay({ isOpen, onClose, initialTab = "scan" }: AIOverlayPro
       if (!response.ok) throw new Error("Backend failed or Google is busy");
 
       const data = (await response.json()) as BackendChatResponse
-      const result = data.result || data.response || data.message || "No response received from the AI backend."
+      let result: any = data.result || data.response || data.message || "No response received from the AI backend."
+
+      // Attempt to parse JSON if the AI returned a JSON string or object
+      try {
+        let parsed = result
+        if (typeof result === "string") {
+          // Extract only the JSON object, ignoring any conversational text outside of it
+          const startIndex = result.indexOf("{")
+          const endIndex = result.lastIndexOf("}")
+          if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            const jsonString = result.substring(startIndex, endIndex + 1)
+            parsed = JSON.parse(jsonString)
+          }
+        }
+        
+        if (typeof parsed === "object" && parsed !== null) {
+          const dataObj = (parsed.disease || parsed.condition || parsed.name || parsed.analysis) ? parsed : (parsed.result || parsed.response || parsed)
+          
+          if (dataObj.disease || dataObj.disease_name || dataObj.condition || dataObj.name || dataObj.analysis || dataObj.recommendation) {
+            result = `🚨 Diagnosis: ${dataObj.disease_name || dataObj.disease || dataObj.condition || dataObj.name || "Unknown"}
+          ⚠️ Severity: ${dataObj.severity || "Not specified"}
+
+          🔬 Analysis:
+          ${dataObj.analysis || dataObj.description || "Visual symptoms detected."}
+
+          🛡️ Proactive Defense:
+          Apply ${dataObj.recommended_product || dataObj.recommendation || dataObj.treatment || "treatment"} (RM ${dataObj.price || ""}).`
+          }
+        }
+      } catch (e) {
+        if (typeof result === "object") {
+          result = JSON.stringify(result, null, 2)
+        }
+      }
 
       setScanState("result")
-      setScanResult(result)
+      setScanResult(String(result))
 
     } catch (error) {
       console.error("Image analysis failed, triggering smart fallback:", error)

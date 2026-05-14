@@ -33,7 +33,7 @@ import {
 
 import { useUI } from "../../components/map-dashboard/ui-context" // Access shared UI state
 
-const API_BASE_URL = "https://farm-agents-586729303053.asia-southeast1.run.app"
+const API_BASE_URL = "http://localhost:8000"
 
 
 
@@ -68,47 +68,30 @@ export default function AgriDashboard() {
 
   // --- Fetch Live Weather ---
   useEffect(() => {
-    const fetchLiveWeather = async () => {
-      try {
-        const weatherCity = "Cameron Highlands, Malaysia";
-        const url = `${API_BASE_URL}/api/weather?location=${encodeURIComponent(weatherCity)}`;        
-        const response = await fetch(url);
-        
-        // 1. SAFETY CHECK: Did the server send a bad response (like a 404 HTML page)?
-        if (!response.ok) {
-          throw new Error("Backend not deployed or returned an error");
-        }
+  const fetchLiveWeather = async () => {
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=Sekinchan,Malaysia&appid=${apiKey}&units=metric`;
+      const response = await fetch(url);
+      const data = await response.json();
 
-        const result = await response.json();
-        
-        if (result.success) {
-          setWeather({
-            temp: result.data.temp,
-            feelsLike: result.data.feels_like,
-            humidity: result.data.humidity,
-            condition: result.data.conditions,
-            wind: result.data.wind_speed
-          });
-        } else {
-          throw new Error("Backend returned unsuccessful data");
-        }
+      if (!response.ok) throw new Error(data.message);
 
-      } catch (error) {
-        console.warn("⚠️ Live Weather failed! Using hardcoded fallback.", error);
-        
-        // 2. THE FALLBACK: Inject fake data so the UI still looks perfect
-        setWeather({
-          temp: "32", 
-          feelsLike: "35", 
-          humidity: "85", 
-          condition: "Sunny & Humid", 
-          wind: "8"
-        });
-      }
-    };
+      setWeather({
+        temp: Math.round(data.main.temp).toString(),
+        feelsLike: Math.round(data.main.feels_like).toString(),
+        humidity: data.main.humidity.toString(),
+        condition: data.weather[0].main,
+        wind: Math.round(data.wind.speed * 3.6).toString()
+      });
 
-    fetchLiveWeather();
-  }, [address]);
+    } catch (error) {
+      console.warn("Weather failed:", error);
+      setWeather({ temp: "32", feelsLike: "35", humidity: "85", condition: "Sunny & Humid", wind: "8" });
+    }
+  };
+  fetchLiveWeather();
+}, [address]);
   
   const [viewingCropIndex, setViewingCropIndex] = useState<number | null>(null)
   
@@ -156,9 +139,13 @@ export default function AgriDashboard() {
       // 2. The master list of our fake AI tasks (using your live weather!)
       const taskPool = [
         { id: Date.now() + 1, text: `✨ AI: Heavy evening watering required for Tomatoes due to ${weather.temp}°C .`, completed: false },
+        { id: Date.now() + 2, text: `✨ AI: High humidity (${weather.humidity}%) alert. Scout Sawah Padi A for early signs of Leaf Blast disease.`, completed: false },
         { id: Date.now() + 2, text: "✨ AI: Apply Copper Fungicide to Field B to prevent Leaf Rust.", completed: false },
+        { id: Date.now() + 4, text: "✨ AI: Schedule Nitrogen top-dressing for Sawah Padi A in 3 days before panicle initiation.", completed: false },
         { id: Date.now() + 3, text: `✨ AI: Monitor Chili Pepper for pests (High Humidity risk at ${weather.humidity}%).`, completed: false },
-        { id: Date.now() + 4, text: "✨ AI: Prepare to harvest early batch of Corn by next Tuesday.", completed: false }
+        { id: Date.now() + 4, text: "✨ AI: Prepare to harvest early batch of Corn by next Tuesday.", completed: false },
+        { id: Date.now() + 1, text: `✨ AI: Maintain water level at 5-10cm in Sawah Padi A to buffer the ${weather.temp}°C heat.`, completed: false },
+        { id: Date.now() + 3, text: "✨ AI: Monitor for Brown Planthopper (BPH) activity tonight. Consider turning on light traps.", completed: false }
       ];
 
       let tasksToShow = [];
@@ -196,6 +183,24 @@ export default function AgriDashboard() {
 
   // Enriched crop data to support the detailed view
   const [crops, setCrops] = useState([
+    { 
+      name: "Wheat", 
+      field: "Sawah Padi A", 
+      date: "2026-03-01", 
+      notes: "", 
+      status: "Healthy", 
+      statusColor: "text-[#4caf50]", 
+      bg: "bg-amber-50", 
+      icon: <Wheat className="w-5 h-5 text-white" />, 
+      color: "from-amber-400 to-amber-600",
+      growth: 85, 
+      humidity: 82, 
+      harvestDate: "May 25, 2026", 
+      expectedYield: "4,500 kg", 
+      marketPrice: "RM 3.20/kg", 
+      healthStatus: "Excellent", 
+      prediction: "Optimal growth detected in Sekinchan climate. High yield expected for the upcoming harvest."
+    },
     { 
       name: "Tomatoes", field: "Main Plot", date: "2026-03-15", notes: "", status: "Healthy", 
       statusColor: "text-[#4caf50]", bg: "bg-red-50", 
