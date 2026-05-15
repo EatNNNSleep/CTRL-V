@@ -80,6 +80,56 @@ const mockMarketDatabase = [
 ];
 const availableProducts = JSON.stringify(mockMarketDatabase);
 
+const DEFAULT_FARM_LOCATION = 'Sekinchan, Malaysia';
+
+function isWeatherRelatedQuery(message: string) {
+    return /\b(weather|forecast|rain|sun|sunny|temperature|humid|humidity|storm|wind|cuaca|hujan|panas|ribut)\b/i.test(message);
+}
+
+async function buildWeatherContext(location = DEFAULT_FARM_LOCATION) {
+    const apiKey = process.env.WEATHER_API_KEY;
+    if (!apiKey) return "";
+
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message || "Failed to fetch forecast");
+
+        const daily = new Map<string, { temps: number[], humidity: number[], rainMm: number, conditions: Map<string, number> }>();
+
+        for (const item of data.list || []) {
+            const date = new Date(item.dt * 1000).toLocaleDateString("en-MY", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                timeZone: "Asia/Kuala_Lumpur",
+            });
+            const entry = daily.get(date) || { temps: [], humidity: [], rainMm: 0, conditions: new Map<string, number>() };
+            entry.temps.push(item.main.temp);
+            entry.humidity.push(item.main.humidity);
+            entry.rainMm += item.rain?.["3h"] || 0;
+            const condition = item.weather?.[0]?.main || "Unknown";
+            entry.conditions.set(condition, (entry.conditions.get(condition) || 0) + 1);
+            daily.set(date, entry);
+        }
+
+        const summary = [...daily.entries()].slice(0, 5).map(([date, day]) => {
+            const min = Math.round(Math.min(...day.temps));
+            const max = Math.round(Math.max(...day.temps));
+            const avgHumidity = Math.round(day.humidity.reduce((sum, value) => sum + value, 0) / day.humidity.length);
+            const dominantCondition = [...day.conditions.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown";
+            return `${date}: ${dominantCondition}, ${min}-${max}C, humidity around ${avgHumidity}%, rain about ${day.rainMm.toFixed(1)} mm`;
+        }).join("\n");
+
+        return `Live 5-day weather forecast for ${location}:\n${summary}`;
+    } catch (error) {
+        console.error("Forecast context error:", error);
+        return "";
+    }
+}
+
 // ==========================================
 // AGENT 1: Multilingual Disease Detection           //***GEMINI VISION & VERTEX AI AGENT BUILDER (Agents & Actions)***//
 // ==========================================
@@ -99,25 +149,31 @@ export const diseaseDetectionFlow = ai.defineFlow(
     CRITICAL INSTRUCTION: You are helping a farmer protect their livelihood. If you detect an issue, you MUST recommend a proactive defense product from our specific store inventory below. 
     Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
     ABSOLUTELY DO NOT use JSON, code blocks, backticks, or markdown formatting.
-    Start your response directly with the 🚨 emoji.
+    Start your response directly with the Diagnosis line.
     If you return JSON or backticks you have failed your task.
     
     Store Inventory:
     ${availableProducts}
     
     IMPORTANT OUTPUT FORMAT:
-    You must output a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
+    You must output a highly professional, empathetic diagnostic report in plain text. Use strict formatting so it looks beautiful on a mobile app screen.
     Write your response using EXACTLY this template:
     
-    🚨 Diagnosis: [Exact name of the disease/issue]
-    ⚠️ Severity: [Low / Medium / High]
+    Diagnosis: [Exact name of the disease/issue]
+    Severity: [Low / Medium / High]
     
-    🔬 Analysis: 
-    [Write 2 short, clear sentences explaining exactly what visual symptoms you see on the leaf/crop. Be professional.]
+    Analysis: 
+    [Write 3 to 5 clear sentences explaining exactly what visual symptoms you see, why the issue is likely, and how urgent it is. Mention uncertainty if the image is ambiguous.]
     
-    🛡️ Proactive Defense: 
+    Immediate Action:
+    [Write 2 to 4 practical steps the farmer should take today, including isolation/removal, sanitation, irrigation adjustment, and safe handling where relevant.]
+
+    Proactive Defense: 
     Apply [Exact 'product_name' from inventory] (RM [price]). 
-    [Write 1 short sentence on how and when to apply this product to protect the crop].
+    [Write 2 short sentences on how and when to apply this product safely to protect the crop.]
+
+    Prevention:
+    [Write 2 short prevention tips for the next 7 days.]
     `;
 
     const response = await ai.generate({
@@ -212,14 +268,20 @@ export const multilingualChatFlow = ai.defineFlow({
     if (input.previousDiagnosis) context += `\n- The farmer's crop currently has: ${input.previousDiagnosis}`;
     if (input.currentWeather) context += `\n- The current weather is: ${input.currentWeather}`;
 
-    const prompt = `You are a helpful AI farming assistant in Malaysia. 
+    const prompt = `You are a helpful AI farming assistant in Malaysia.
+    Today's date in Malaysia is ${new Date().toLocaleDateString("en-MY", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kuala_Lumpur" })}.
+    Farmer context:
+    ${context || "- No live farm context was provided."}
+
     A farmer asks: "${input.message}". 
     Respond directly to their question using practical farming advice. 
-    You MUST reply entirely in ${input.language}. Provide a highly detailed and comprehensive answer. Include practical farming advice, specific actionable steps, and market insights if they ask about selling. 
+    You MUST reply entirely in ${input.language}. Provide a mature, useful answer with practical farming advice, specific actionable steps, and market insights if they ask about selling.
+    If live weather context is provided, use it directly and do not tell the farmer to check a meteorological department as the main answer.
+    If the farmer asks about weather and no live weather context is available, be transparent that live forecast data is unavailable, then still give careful Malaysian farming guidance based on typical local conditions.
 
     CRITICAL RULES:
     1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
-    2. LENGTH LIMIT: Keep your answers short and punchy. Maximum 3 brief paragraphs.
+    2. DEPTH: For real farming questions, answer in 4 to 7 concise sections or paragraphs. Include immediate actions, next few days, and crop-specific risks.
     3. LANGUAGE: You MUST reply entirely in ${input.language}.
     4. FORMATTING (STRICT): 
        - DO NOT use single asterisks (*) or hyphens (-) for lists or italics. They will break the UI.
@@ -356,7 +418,15 @@ app.post('/api/market-trends', async (req, res) => {
 //Agent 4
 app.post('/api/chat', async (req, res) => {
     try {
-        const result = await multilingualChatFlow(req.body);
+        const chatInput = {
+            ...req.body,
+            currentWeather: req.body.currentWeather || (
+                isWeatherRelatedQuery(req.body.message || "")
+                    ? await buildWeatherContext(req.body.location || DEFAULT_FARM_LOCATION)
+                    : undefined
+            ),
+        };
+        const result = await multilingualChatFlow(chatInput);
         res.json({ success: true, result: result });
     } catch (error) {
         console.error("Agent 4 Error:", error);

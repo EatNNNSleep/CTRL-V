@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.translatePostFlow = exports.multilingualChatFlow = exports.marketIntelligenceFlow = exports.farmScheduleFlow = exports.diseaseDetectionFlow = void 0;
+exports.translatePostFlow = exports.voiceAssistantFlow = exports.multilingualChatFlow = exports.marketIntelligenceFlow = exports.farmScheduleFlow = exports.diseaseDetectionFlow = void 0;
 //***GOOGLE CLOUD WORKSTATIONS (Dev Environment Concept)***//
 const genkit_1 = require("genkit");
 const googleai_1 = require("@genkit-ai/googleai");
@@ -114,6 +114,50 @@ const mockMarketDatabase = [
     }
 ];
 const availableProducts = JSON.stringify(mockMarketDatabase);
+const DEFAULT_FARM_LOCATION = 'Sekinchan, Malaysia';
+function isWeatherRelatedQuery(message) {
+    return /\b(weather|forecast|rain|sun|sunny|temperature|humid|humidity|storm|wind|cuaca|hujan|panas|ribut)\b/i.test(message);
+}
+async function buildWeatherContext(location = DEFAULT_FARM_LOCATION) {
+    const apiKey = process.env.WEATHER_API_KEY;
+    if (!apiKey)
+        return "";
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!response.ok)
+            throw new Error(data.message || "Failed to fetch forecast");
+        const daily = new Map();
+        for (const item of data.list || []) {
+            const date = new Date(item.dt * 1000).toLocaleDateString("en-MY", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+                timeZone: "Asia/Kuala_Lumpur",
+            });
+            const entry = daily.get(date) || { temps: [], humidity: [], rainMm: 0, conditions: new Map() };
+            entry.temps.push(item.main.temp);
+            entry.humidity.push(item.main.humidity);
+            entry.rainMm += item.rain?.["3h"] || 0;
+            const condition = item.weather?.[0]?.main || "Unknown";
+            entry.conditions.set(condition, (entry.conditions.get(condition) || 0) + 1);
+            daily.set(date, entry);
+        }
+        const summary = [...daily.entries()].slice(0, 5).map(([date, day]) => {
+            const min = Math.round(Math.min(...day.temps));
+            const max = Math.round(Math.max(...day.temps));
+            const avgHumidity = Math.round(day.humidity.reduce((sum, value) => sum + value, 0) / day.humidity.length);
+            const dominantCondition = [...day.conditions.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Unknown";
+            return `${date}: ${dominantCondition}, ${min}-${max}C, humidity around ${avgHumidity}%, rain about ${day.rainMm.toFixed(1)} mm`;
+        }).join("\n");
+        return `Live 5-day weather forecast for ${location}:\n${summary}`;
+    }
+    catch (error) {
+        console.error("Forecast context error:", error);
+        return "";
+    }
+}
 // ==========================================
 // AGENT 1: Multilingual Disease Detection           //***GEMINI VISION & VERTEX AI AGENT BUILDER (Agents & Actions)***//
 // ==========================================
@@ -125,32 +169,44 @@ exports.diseaseDetectionFlow = ai.defineFlow({
     }),
     outputSchema: genkit_1.z.string(),
 }, async (input) => {
-    const prompt = `You are an expert plant pathologist. 
-    Analyze this image and identify the disease.
+    const prompt = `You are TaniAgent, an expert plant pathologist and a supportive farming assistant. 
+    Analyze this image and identify any plant disease, pest issue, or nutrient deficiency.
     
     CRITICAL INSTRUCTION: You are helping a farmer protect their livelihood. If you detect an issue, you MUST recommend a proactive defense product from our specific store inventory below. 
     Do not make up products. You MUST ONLY recommend products where "in_stock" is true.
+    ABSOLUTELY DO NOT use JSON, code blocks, backticks, or markdown formatting.
+    Start your response directly with the Diagnosis line.
+    If you return JSON or backticks you have failed your task.
     
     Store Inventory:
     ${availableProducts}
     
     IMPORTANT OUTPUT FORMAT:
-    Do NOT return a JSON object. You must return a highly professional, empathetic diagnostic report in plain text. Use emojis and strict formatting so it looks beautiful on a mobile app screen.
+    You must output a highly professional, empathetic diagnostic report in plain text. Use strict formatting so it looks beautiful on a mobile app screen.
+    Write your response using EXACTLY this template:
     
-    Use EXACTLY this format:
+    Diagnosis: [Exact name of the disease/issue]
+    Severity: [Low / Medium / High]
     
-    🚨 Diagnosis: [Exact name of the disease/issue]
-    ⚠️ Severity: [Low / Medium / High]
+    Analysis: 
+    [Write 3 to 5 clear sentences explaining exactly what visual symptoms you see, why the issue is likely, and how urgent it is. Mention uncertainty if the image is ambiguous.]
     
-    🔬 Analysis: 
-    [Write 2 short, clear sentences explaining exactly what visual symptoms you see on the leaf/crop. Be professional.]
-    
-    🛡️ Proactive Defense: 
+    Immediate Action:
+    [Write 2 to 4 practical steps the farmer should take today, including isolation/removal, sanitation, irrigation adjustment, and safe handling where relevant.]
+
+    Proactive Defense: 
     Apply [Exact 'product_name' from inventory] (RM [price]). 
-    [Write 1 short sentence on how and when to apply this product to protect the crop].`;
+    [Write 2 short sentences on how and when to apply this product safely to protect the crop.]
+
+    Prevention:
+    [Write 2 short prevention tips for the next 7 days.]
+    `;
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
-        prompt: prompt,
+        prompt: [
+            { text: prompt },
+            { media: { url: input.imageUrl } }
+        ],
     });
     return response.text;
 });
@@ -212,14 +268,38 @@ exports.multilingualChatFlow = ai.defineFlow({
     name: 'multilingualChatFlow',
     inputSchema: genkit_1.z.object({
         message: genkit_1.z.string(),
-        language: genkit_1.z.string(), // e.g., "Bahasa Malaysia", "Mandarin", "Tamil"
+        language: genkit_1.z.enum(["English", "Bahasa Melayu", "Tamil", "Chinese"]).default("Bahasa Melayu"),
+        previousDiagnosis: genkit_1.z.string().optional(),
+        currentWeather: genkit_1.z.string().optional(),
     }),
     outputSchema: genkit_1.z.string(),
 }, async (input) => {
-    const prompt = `You are a helpful AI farming assistant in Malaysia. 
+    // Build the dynamic context string
+    let context = "";
+    if (input.previousDiagnosis)
+        context += `\n- The farmer's crop currently has: ${input.previousDiagnosis}`;
+    if (input.currentWeather)
+        context += `\n- The current weather is: ${input.currentWeather}`;
+    const prompt = `You are a helpful AI farming assistant in Malaysia.
+    Today's date in Malaysia is ${new Date().toLocaleDateString("en-MY", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kuala_Lumpur" })}.
+    Farmer context:
+    ${context || "- No live farm context was provided."}
+
     A farmer asks: "${input.message}". 
     Respond directly to their question using practical farming advice. 
-    You MUST reply entirely in ${input.language}. Keep the answer practical, polite, and under 3 sentences.`;
+    You MUST reply entirely in ${input.language}. Provide a mature, useful answer with practical farming advice, specific actionable steps, and market insights if they ask about selling.
+    If live weather context is provided, use it directly and do not tell the farmer to check a meteorological department as the main answer.
+    If the farmer asks about weather and no live weather context is available, be transparent that live forecast data is unavailable, then still give careful Malaysian farming guidance based on typical local conditions.
+
+    CRITICAL RULES:
+    1. PROPORTIONAL RESPONSE: If the farmer just says "Hi", reply with a short 1-2 sentence greeting.
+    2. DEPTH: For real farming questions, answer in 4 to 7 concise sections or paragraphs. Include immediate actions, next few days, and crop-specific risks.
+    3. LANGUAGE: You MUST reply entirely in ${input.language}.
+    4. FORMATTING (STRICT): 
+       - DO NOT use single asterisks (*) or hyphens (-) for lists or italics. They will break the UI.
+       - Use ONLY emojis as bullet points (e.g., 💧, 🛡️, 🌿).
+       - Use **bold text** ONLY for main titles.
+       - Use double line breaks (\n\n) between sections so it is easy to read.`;
     const response = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: prompt,
@@ -227,7 +307,38 @@ exports.multilingualChatFlow = ai.defineFlow({
     return response.text;
 });
 // ==========================================
-// AGENT 5: COMMUNITY TRANSLATOR
+// AGENT 5: VOICE FARMING ASSISTANT
+// ==========================================
+exports.voiceAssistantFlow = ai.defineFlow({
+    name: 'voiceAssistantFlow',
+    inputSchema: genkit_1.z.object({
+        transcript: genkit_1.z.string(),
+        language: genkit_1.z.string().default("English"),
+    }),
+    outputSchema: genkit_1.z.string(),
+}, async (input) => {
+    const prompt = `You are TaniAgent Voice, the spoken version of a helpful AI farming assistant in Malaysia.
+    A farmer said: "${input.transcript}".
+
+    Give a direct answer that sounds natural when read aloud.
+    You MUST reply entirely in ${input.language}.
+    Provide a detailed, thoughtful, and comprehensive answer with practical advice and actionable steps. 
+    Please provide a highly useful, spoken response following these CRITICAL RULES:
+    1. LANGUAGE: You MUST reply entirely and naturally in ${input.language}.
+    2. SPOKEN FORMAT: This text will be read aloud by a Voice Engine. DO NOT use any Markdown symbols (like * or #), bullet points, bolding, emojis, or special formatting. Use plain text only.
+    3. STRUCTURE: Keep your answer to exactly 3 or 4 conversational sentences. 
+    - Sentence 1: Give a direct, empathetic answer to their question.
+    - Sentence 2: Provide a brief scientific or agricultural reason.
+    - Sentence 3/4: Give one specific, actionable step they can take today (mentioning water levels, specific fertilizers, or pest control methods).
+    4. TONE: Sound confident, practical, and localized to Malaysian farming conditions.`;
+    const response = await ai.generate({
+        model: 'googleai/gemini-2.5-flash',
+        prompt: prompt,
+    });
+    return response.text;
+});
+// ==========================================
+// AGENT 6: COMMUNITY TRANSLATOR
 // ==========================================
 exports.translatePostFlow = ai.defineFlow({
     name: 'translatePostFlow',
@@ -266,7 +377,6 @@ app.post('/api/disease-detect', async (req, res) => {
     }
     catch (error) {
         console.error("Agent 1 Error:", error);
-        //  HACKATHON BYPASS: If Google is busy, send backup diagnosis!
         console.log("⚠️ Google is busy. Sending emergency backup diagnosis to frontend!");
         res.json({
             success: true,
@@ -308,7 +418,13 @@ app.post('/api/market-trends', async (req, res) => {
 //Agent 4
 app.post('/api/chat', async (req, res) => {
     try {
-        const result = await (0, exports.multilingualChatFlow)(req.body);
+        const chatInput = {
+            ...req.body,
+            currentWeather: req.body.currentWeather || (isWeatherRelatedQuery(req.body.message || "")
+                ? await buildWeatherContext(req.body.location || DEFAULT_FARM_LOCATION)
+                : undefined),
+        };
+        const result = await (0, exports.multilingualChatFlow)(chatInput);
         res.json({ success: true, result: result });
     }
     catch (error) {
@@ -320,7 +436,22 @@ app.post('/api/chat', async (req, res) => {
         });
     }
 });
-// Agent 5
+//Agent 5
+app.post('/api/voice', async (req, res) => {
+    try {
+        const result = await (0, exports.voiceAssistantFlow)(req.body);
+        res.json({ success: true, result: result });
+    }
+    catch (error) {
+        console.error("Agent 5 Error:", error);
+        console.log("âš ï¸ Sending backup Voice data...");
+        res.json({
+            success: true,
+            result: "I couldn't reach the voice assistant just now. Please try again in a moment."
+        });
+    }
+});
+// Agent 6
 app.post('/api/translate', async (req, res) => {
     try {
         const result = await (0, exports.translatePostFlow)(req.body);
@@ -378,6 +509,49 @@ app.get('/api/orders/recent', (req, res) => {
         message: "Recent orders retrieved successfully",
         orders: mockOrders
     });
+});
+// ==========================================
+// LIVE WEATHER INTEGRATION
+// ==========================================
+app.get('/api/weather', async (req, res) => {
+    // Default to Klang if no location is provided by the frontend
+    const location = req.query.location || 'Shah Alam, Malaysia';
+    const apiKey = process.env.WEATHER_API_KEY;
+    try {
+        if (!apiKey)
+            throw new Error("Missing WEATHER_API_KEY in .env");
+        // Fetch current weather from OpenWeatherMap (using metric units for Celsius)
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=metric`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (!response.ok)
+            throw new Error(data.message || "Failed to fetch weather");
+        // Format the messy OpenWeather data into something clean for our frontend
+        const formattedWeather = {
+            temp: Math.round(data.main.temp),
+            feels_like: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            // Capitalize the condition (e.g., "clouds" -> "Clouds")
+            conditions: data.weather[0].main,
+            // Convert wind speed from m/s to km/h
+            wind_speed: Math.round(data.wind.speed * 3.6),
+        };
+        res.json({ success: true, data: formattedWeather });
+    }
+    catch (error) {
+        console.error("Weather API Error:", error);
+        // If the API fails or limits are reached, send this fallback data.
+        res.json({
+            success: true,
+            data: {
+                temp: 32,
+                feels_like: 35,
+                humidity: 85,
+                conditions: "Sunny & Humid",
+                wind_speed: 8
+            }
+        });
+    }
 });
 const PORT = Number(process.env.PORT) || 8080;
 app.listen(PORT, '0.0.0.0', () => {
