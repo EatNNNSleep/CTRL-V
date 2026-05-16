@@ -12,7 +12,7 @@ Video Demo: https://www.youtube.com/watch?v=ubjV_O9CxW8
 
 Frontend Web App: https://tani-agent.web.app
 
-Backend API (Cloud Run): https://farm-agents-586729303053.asia-southeast1.run.app
+Backend API (Cloud Run): https://farm-agents-586729303053.asia-southeast1.run.app or https://ctrlv-backend-sfut66fb3a-as.a.run.app
 
 (Note: You can test the app immediately using the Frontend link above. The Local Setup steps below are for developers or judges who wish to review the source code or run the environment locally).
 
